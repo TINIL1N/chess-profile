@@ -147,20 +147,52 @@ text-align:center;
 
 <div class="section">
 
-<h3>FIDE рейтинги</h3>
+<div class="section">
+
+<h3>Рейтинги</h3>
 
 <div class="ratings">
 
+<a href="https://ratings.fide.com/profile/55620590" target="_blank" class="ratingTitle">
+FIDE
+</a>
+
+<div class="ratingLine">
 ♟ Classic:
 <span class="rating classic" id="fideStandard">...</span>
-<br>
+</div>
 
+<div class="ratingLine">
 ⚡ Rapid:
 <span class="rating rapid" id="fideRapid">...</span>
-<br>
+</div>
 
+<div class="ratingLine">
 🔥 Blitz:
 <span class="rating blitz" id="fideBlitz">...</span>
+</div>
+
+
+<br>
+
+
+<a href="https://ratings.ruchess.ru/people/170586" target="_blank" class="ratingTitle">
+РШФ
+</a>
+
+<div class="ratingLine">
+♟ Classic: ...
+</div>
+
+<div class="ratingLine">
+⚡ Rapid: ...
+</div>
+
+<div class="ratingLine">
+🔥 Blitz: ...
+</div>
+
+</div>
 
 </div>
 
@@ -196,3 +228,20 @@ target="_blank">Telegram</a>
 
 </body>
 </html>
+
+.ratingTitle{
+display:block;
+font-weight:700;
+font-size:15px;
+margin-bottom:6px;
+color:#60a5fa;
+text-decoration:none;
+}
+
+.ratingTitle:hover{
+text-decoration:underline;
+}
+
+.ratingLine{
+margin-left:6px;
+}
