@@ -11,18 +11,16 @@ const history = [
 {date:"2026-03", std:1574, rapid:1852, blitz:1737}
 ]
 
-// сортировка по времени
-history.sort((a,b)=>new Date(a.date)-new Date(b.date))
+history.sort((a,b)=> new Date(a.date)-new Date(b.date))
 
 const labels = history.map(h=>h.date)
 const classic = history.map(h=>h.std)
 const rapid = history.map(h=>h.rapid)
 const blitz = history.map(h=>h.blitz)
 
-// изменения рейтинга
 const rapidChange = rapid.map((v,i)=>{
 if(i===0 || rapid[i-1]===null) return null
-return v-rapid[i-1]
+return v - rapid[i-1]
 })
 
 // peak рейтинг
@@ -60,6 +58,10 @@ pointRadius:3
 ]
 },
 options:{
+animation:{
+duration:2000,
+easing:"easeOutQuart"
+},
 plugins:{
 legend:{labels:{color:"white"}},
 tooltip:{
@@ -72,8 +74,8 @@ const change = rapidChange[context.dataIndex]
 
 if(change===null) return ""
 
-if(change>0) return "Рост: ▲ +" + change
-if(change<0) return "Падение: ▼ " + change
+if(change>0) return "Рост ▲ +" + change
+if(change<0) return "Падение ▼ " + change
 }
 
 return ""
