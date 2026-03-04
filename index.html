@@ -31,7 +31,7 @@ padding:20px;
 background:#1f2937;
 padding:45px;
 border-radius:20px;
-max-width:360px;
+max-width:420px;
 width:100%;
 box-shadow:0 20px 40px rgba(0,0,0,0.5);
 text-align:center;
@@ -82,17 +82,9 @@ font-size:16px;
 font-weight:600;
 }
 
-.classic{
-color:#60a5fa;
-}
-
-.rapid{
-color:#22c55e;
-}
-
-.blitz{
-color:#ef4444;
-}
+.classic{color:#60a5fa;}
+.rapid{color:#22c55e;}
+.blitz{color:#ef4444;}
 
 .ratingTitle{
 display:block;
@@ -133,6 +125,10 @@ transition:0.2s;
 .button:hover{
 background:#1d4ed8;
 transform:translateY(-2px);
+}
+
+canvas{
+margin-top:10px;
 }
 
 </style>
@@ -187,19 +183,20 @@ FIDE
 РШФ
 </a>
 
-<div class="ratingLine">
-♟ Classic: ...
-</div>
+<div class="ratingLine">♟ Classic: ...</div>
+<div class="ratingLine">⚡ Rapid: ...</div>
+<div class="ratingLine">🔥 Blitz: ...</div>
 
-<div class="ratingLine">
-⚡ Rapid: ...
-</div>
-
-<div class="ratingLine">
-🔥 Blitz: ...
 </div>
 
 </div>
+
+
+<div class="section">
+
+<h3>История рейтинга</h3>
+
+<canvas id="ratingChart"></canvas>
 
 </div>
 
@@ -231,13 +228,8 @@ target="_blank">Telegram</a>
 </div>
 
 <script src="script.js"></script>
-
-</body>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="chart.js"></script>
 
-  <div class="section">
-<h3>История рейтинга</h3>
-<canvas id="ratingChart"></canvas>
-</div>
+</body>
 </html>
