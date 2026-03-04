@@ -57,6 +57,13 @@ color:#9ca3af;
 margin-bottom:10px;
 }
 
+.about{
+margin-top:12px;
+font-size:14px;
+color:#cbd5e1;
+line-height:1.5;
+}
+
 .section{
 margin-top:28px;
 text-align:left;
@@ -152,10 +159,7 @@ margin-top:10px;
 <h1>Миклин Максим</h1>
 <p class="subtitle">Шахматы ♟ Челябинск</p>
 
-<div class="section">
-<h3>Возраст</h3>
-<span id="age">...</span>
-</div>
+<div class="about" id="aboutText"></div>
 
 
 <div class="section">
@@ -212,6 +216,17 @@ target="_blank">
 
 </a>
 
+
+<a class="iconButton"
+href="https://vk.com/tinil1n"
+target="_blank">
+
+<svg viewBox="0 0 24 24">
+<path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm6.16 16.54h-1.4c-.53 0-.69-.43-1.65-1.4-.83-.8-1.2-.91-1.41-.91-.29 0-.38.08-.38.49v1.27c0 .34-.11.55-.99.55-1.46 0-3.08-.89-4.22-2.54C6.38 11.76 5.5 9.56 5.5 9.21c0-.19.08-.36.49-.36h1.4c.35 0 .48.15.61.5.68 1.97 1.82 3.69 2.28 3.69.17 0 .24-.08.24-.5V10.5c-.05-.94-.55-1.02-.55-1.36 0-.17.14-.34.36-.34h2.2c.29 0 .39.16.39.51v2.76c0 .3.13.4.21.4.17 0 .31-.1.63-.41.99-1.1 1.7-2.8 1.7-2.8.09-.19.24-.36.6-.36h1.4c.42 0 .51.22.42.52-.17.78-1.83 3.08-1.83 3.08-.14.23-.2.34 0 .6.14.2.6.59.91.95.56.64 1 1.18 1.12 1.55.14.36-.07.55-.43.55z"/>
+</svg>
+
+</a>
+
 </div>
 
 </div>
@@ -223,6 +238,24 @@ target="_blank">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="script.js"></script>
 <script src="chart.js"></script>
+
+<script>
+
+// динамическое описание
+const birthDate = new Date("2010-02-03")
+const today = new Date()
+
+let age = today.getFullYear() - birthDate.getFullYear()
+const m = today.getMonth() - birthDate.getMonth()
+
+if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+age--
+}
+
+document.getElementById("aboutText").innerText =
+`${age}-летний шахматист из Челябинска. Участник рейтинговых турниров FIDE, интересуюсь стратегией, обучением и развитием шахматного мышления.`
+
+</script>
 
 </body>
 </html>
