@@ -1,6 +1,6 @@
-// дата рождения
-const birthDate = new Date("2010-02-03")
+// возраст
 
+const birthDate = new Date("2010-02-03")
 const today = new Date()
 
 let age = today.getFullYear() - birthDate.getFullYear()
@@ -15,29 +15,19 @@ document.getElementById("age").textContent = age
 
 
 
-// загрузка рейтингов FIDE
+// загрузка рейтингов РШФ
 
-fetch("fide.json")
+fetch("https://ratings.ruchess.ru/api/people/170586")
 .then(response => response.json())
 .then(data => {
 
-document.getElementById("fideStandard").textContent = data.standard
-
-document.getElementById("fideRapid").textContent = data.rapid
-
-document.getElementById("fideBlitz").textContent = data.blitz
+document.getElementById("fideStandard").textContent = data.rating_classic
+document.getElementById("fideRapid").textContent = data.rating_rapid
+document.getElementById("fideBlitz").textContent = data.rating_blitz
 
 })
+.catch(error => {
 
-// дата обновления рейтингов
+console.log("Не удалось загрузить рейтинг", error)
 
-const now = new Date()
-
-const options = {
-year: "numeric",
-month: "long",
-day: "numeric"
-}
-
-document.getElementById("updateDate").textContent =
-now.toLocaleDateString("ru-RU", options)
+})
