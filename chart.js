@@ -1,3 +1,5 @@
+document.addEventListener("DOMContentLoaded", () => {
+
 const ratingHistory = [
 {date:"2019-12", std:null, rapid:null, blitz:1007},
 {date:"2020-04", std:null, rapid:1001, blitz:1007},
@@ -9,47 +11,77 @@ const ratingHistory = [
 {date:"2026-03", std:1574, rapid:1852, blitz:1737}
 ]
 
-const history = [...ratingHistory]
+// порядок от старого к новому
+const history = [...ratingHistory].sort((a,b)=> new Date(a.date)-new Date(b.date))
 
-const labels = history.map(h => h.date)
-const classic = history.map(h => h.std)
-const rapid = history.map(h => h.rapid)
-const blitz = history.map(h => h.blitz)
+const labels = history.map(h=>h.date)
+const classic = history.map(h=>h.std)
+const rapid = history.map(h=>h.rapid)
+const blitz = history.map(h=>h.blitz)
 
-const ctx = document.getElementById('ratingChart')
+// изменение рейтинга
+const rapidChange = rapid.map((v,i)=>{
+if(i===0 || v===null) return null
+return v - rapid[i-1]
+})
+
+const ctx = document.getElementById("ratingChart")
 
 new Chart(ctx,{
-type:'line',
+type:"line",
 data:{
 labels:labels,
 datasets:[
 {
-label:'Classic',
+label:"Classic",
 data:classic,
-borderColor:'#60a5fa',
-tension:0.3
+borderColor:"#60a5fa",
+tension:0.35,
+pointRadius:3
 },
 {
-label:'Rapid',
+label:"Rapid",
 data:rapid,
-borderColor:'#22c55e',
-tension:0.3
+borderColor:"#22c55e",
+tension:0.35,
+pointRadius:4
 },
 {
-label:'Blitz',
+label:"Blitz",
 data:blitz,
-borderColor:'#ef4444',
-tension:0.3
+borderColor:"#ef4444",
+tension:0.35,
+pointRadius:3
 }
 ]
 },
 options:{
 plugins:{
-legend:{labels:{color:'white'}}
+legend:{labels:{color:"white"}},
+tooltip:{
+callbacks:{
+afterLabel:function(context){
+
+if(context.dataset.label==="Rapid"){
+const change = rapidChange[context.dataIndex]
+
+if(change===null) return ""
+
+return change>0
+? "Рост: +" + change
+: "Падение: " + change
+}
+
+return ""
+}
+}
+}
 },
 scales:{
-x:{ticks:{color:'white'}},
-y:{ticks:{color:'white'}}
+x:{ticks:{color:"white"}},
+y:{ticks:{color:"white"}}
 }
 }
+})
+
 })
