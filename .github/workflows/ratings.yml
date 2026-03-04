@@ -1,0 +1,31 @@
+name: update chess ratings
+
+on:
+  schedule:
+    - cron: "0 5 1 * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get RSHF rating
+        run: |
+          curl https://ratings.ruchess.ru/api/people/170586 > ruchess.json
+
+      - name: Update JSON
+        run: |
+          echo "updating ratings"
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add .
+          git commit -m "auto update ratings" || echo "no changes"
+          git push
