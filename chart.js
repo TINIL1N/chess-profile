@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-const ratingHistory = [
+const history = [
 {date:"2019-12", std:null, rapid:null, blitz:1007},
 {date:"2020-04", std:null, rapid:1001, blitz:1007},
 {date:"2021-03", std:null, rapid:1019, blitz:1003},
@@ -11,19 +11,23 @@ const ratingHistory = [
 {date:"2026-03", std:1574, rapid:1852, blitz:1737}
 ]
 
-// порядок от старого к новому
-const history = [...ratingHistory].sort((a,b)=> new Date(a.date)-new Date(b.date))
+// сортировка по времени
+history.sort((a,b)=>new Date(a.date)-new Date(b.date))
 
 const labels = history.map(h=>h.date)
 const classic = history.map(h=>h.std)
 const rapid = history.map(h=>h.rapid)
 const blitz = history.map(h=>h.blitz)
 
-// изменение рейтинга
+// изменения рейтинга
 const rapidChange = rapid.map((v,i)=>{
-if(i===0 || v===null) return null
-return v - rapid[i-1]
+if(i===0 || rapid[i-1]===null) return null
+return v-rapid[i-1]
 })
+
+// peak рейтинг
+const peakRapid = Math.max(...rapid.filter(v=>v!==null))
+const peakIndex = rapid.indexOf(peakRapid)
 
 const ctx = document.getElementById("ratingChart")
 
@@ -44,7 +48,7 @@ label:"Rapid",
 data:rapid,
 borderColor:"#22c55e",
 tension:0.35,
-pointRadius:4
+pointRadius: rapid.map((v,i)=> i===peakIndex ? 7 : 3)
 },
 {
 label:"Blitz",
@@ -63,13 +67,13 @@ callbacks:{
 afterLabel:function(context){
 
 if(context.dataset.label==="Rapid"){
+
 const change = rapidChange[context.dataIndex]
 
 if(change===null) return ""
 
-return change>0
-? "Рост: +" + change
-: "Падение: " + change
+if(change>0) return "Рост: ▲ +" + change
+if(change<0) return "Падение: ▼ " + change
 }
 
 return ""
