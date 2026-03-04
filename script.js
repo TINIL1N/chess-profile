@@ -12,30 +12,25 @@ age--
 
 const about = document.getElementById("aboutText")
 
-if(about){
+if (about) {
 about.textContent =
 age + "-летний шахматист из Челябинска. Участник и призёр турниров всех уровней. Тренирую детей и взрослых любого уровня — от первых шагов в шахматах до турнирной подготовки."
 }
 
 
-// стрелки рейтинга
 function arrow(diff){
-
 if(diff > 0){
 return `<span style="color:#22c55e"> ▲ +${diff}</span>`
 }
-
 if(diff < 0){
 return `<span style="color:#ef4444"> ▼ ${diff}</span>`
 }
-
 return `<span style="color:#9ca3af"> → 0</span>`
 }
 
 
-// загрузка рейтингов
 fetch("fide.json")
-.then(response => response.json())
+.then(r => r.json())
 .then(data => {
 
 const prev = data.previous || {}
@@ -54,6 +49,6 @@ document.getElementById("fideBlitz").innerHTML =
 data.blitz + arrow(blitzDiff)
 
 })
-.catch(err => console.log(err))
+.catch(e => console.log(e))
 
 })
