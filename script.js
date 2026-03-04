@@ -1,29 +1,61 @@
-// расчет возраста
-
-const birthDate = new Date("2010-02-03")
-const today = new Date()
-
-let age = today.getFullYear() - birthDate.getFullYear()
-
-const m = today.getMonth() - birthDate.getMonth()
-
-if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-age--
-}
-
-document.getElementById("age").textContent = age
-
-
-
-// загрузка рейтингов
-
-fetch("fide.json")
-.then(response => response.json())
+fetch("rating_history.json")
+.then(r => r.json())
 .then(data => {
 
-document.getElementById("fideStandard").textContent = data.standard
-document.getElementById("fideRapid").textContent = data.rapid
-document.getElementById("fideBlitz").textContent = data.blitz
+const labels = data.history.map(i => i.date).reverse()
+
+const standard = data.history.map(i => i.standard).reverse()
+const rapid = data.history.map(i => i.rapid).reverse()
+const blitz = data.history.map(i => i.blitz).reverse()
+
+const ctx = document.getElementById("ratingChart")
+
+new Chart(ctx,{
+type:"line",
+data:{
+labels:labels,
+datasets:[
+{
+label:"Classic",
+data:standard,
+borderColor:"#60a5fa",
+backgroundColor:"transparent",
+spanGaps:true
+},
+{
+label:"Rapid",
+data:rapid,
+borderColor:"#22c55e",
+backgroundColor:"transparent",
+spanGaps:true
+},
+{
+label:"Blitz",
+data:blitz,
+borderColor:"#ef4444",
+backgroundColor:"transparent",
+spanGaps:true
+}
+]
+},
+options:{
+responsive:true,
+plugins:{
+legend:{
+labels:{color:"white"}
+}
+},
+scales:{
+x:{
+ticks:{color:"white"},
+grid:{color:"#1f2937"}
+},
+y:{
+ticks:{color:"white"},
+grid:{color:"#1f2937"}
+}
+}
+}
+})
 
 })
-.catch(error => console.error("Ошибка загрузки рейтингов:", error))
