@@ -1,5 +1,11 @@
 {
-  "standard": 1574,
-  "rapid": 1852,
-  "blitz": 1737
+ "standard":1574,
+ "rapid":1852,
+ "blitz":1737,
+
+ "previous":{
+  "standard":1549,
+  "rapid":1767,
+  "blitz":1673
+ }
 }
