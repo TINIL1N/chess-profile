@@ -94,6 +94,23 @@ color:#22c55e;
 color:#ef4444;
 }
 
+.ratingTitle{
+display:block;
+font-weight:700;
+font-size:15px;
+margin-bottom:6px;
+color:#60a5fa;
+text-decoration:none;
+}
+
+.ratingTitle:hover{
+text-decoration:underline;
+}
+
+.ratingLine{
+margin-left:6px;
+}
+
 .buttons{
 margin-top:15px;
 display:flex;
@@ -118,13 +135,6 @@ background:#1d4ed8;
 transform:translateY(-2px);
 }
 
-.footer{
-margin-top:20px;
-font-size:12px;
-color:#9ca3af;
-text-align:center;
-}
-
 </style>
 
 </head>
@@ -138,14 +148,13 @@ text-align:center;
 <img class="photo" src="Me.png">
 
 <h1>Максим</h1>
-<p class="subtitle"> Шахматы ♟ Челябинск</p>
+<p class="subtitle">Шахматы ♟ Челябинск</p>
 
 <div class="section">
 <h3>Возраст</h3>
 <span id="age">...</span>
 </div>
 
-<div class="section">
 
 <div class="section">
 
@@ -172,9 +181,7 @@ FIDE
 <span class="rating blitz" id="fideBlitz">...</span>
 </div>
 
-
 <br>
-
 
 <a href="https://ratings.ruchess.ru/people/170586" target="_blank" class="ratingTitle">
 РШФ
@@ -196,7 +203,6 @@ FIDE
 
 </div>
 
-</div>
 
 <div class="section">
 
@@ -228,20 +234,3 @@ target="_blank">Telegram</a>
 
 </body>
 </html>
-
-.ratingTitle{
-display:block;
-font-weight:700;
-font-size:15px;
-margin-bottom:6px;
-color:#60a5fa;
-text-decoration:none;
-}
-
-.ratingTitle:hover{
-text-decoration:underline;
-}
-
-.ratingLine{
-margin-left:6px;
-}
