@@ -2,13 +2,15 @@ fetch("rating_history.json")
 .then(r => r.json())
 .then(data => {
 
-const labels = data.history.map(x => x.date).reverse()
+const labels = data.history.map(i => i.date)
 
-const standard = data.history.map(x => x.standard).reverse()
-const rapid = data.history.map(x => x.rapid).reverse()
-const blitz = data.history.map(x => x.blitz).reverse()
+const standard = data.history.map(i => i.standard)
+const rapid = data.history.map(i => i.rapid)
+const blitz = data.history.map(i => i.blitz)
 
-new Chart(document.getElementById("ratingChart"),{
+const ctx = document.getElementById("ratingChart")
+
+new Chart(ctx,{
 type:"line",
 data:{
 labels:labels,
