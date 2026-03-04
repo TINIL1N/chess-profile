@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+// возраст
 const birthDate = new Date("2010-02-03")
 const today = new Date()
 
@@ -10,42 +11,47 @@ if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
 age--
 }
 
-const ageElement = document.getElementById("age")
-if(ageElement){
-ageElement.textContent = age
+document.getElementById("age").textContent = age
+
+
+
+// функция стрелочек рейтинга
+function arrow(diff){
+
+if(diff > 0){
+return `<span style="color:#22c55e;font-weight:600"> ▲ +${diff}</span>`
 }
 
+if(diff < 0){
+return `<span style="color:#ef4444;font-weight:600"> ▼ ${diff}</span>`
+}
+
+return `<span style="color:#9ca3af"> → 0</span>`
+}
+
+
+
+// загрузка FIDE рейтингов
 fetch("fide.json")
 .then(r => r.json())
 .then(data => {
 
-const std = document.getElementById("fideStandard")
-const rapid = document.getElementById("fideRapid")
-const blitz = document.getElementById("fideBlitz")
+const prev = data.previous || {}
 
-if(std) std.textContent = data.standard
-if(rapid) rapid.textContent = data.rapid
-if(blitz) blitz.textContent = data.blitz
+const stdDiff = data.standard - (prev.standard ?? data.standard)
+const rapidDiff = data.rapid - (prev.rapid ?? data.rapid)
+const blitzDiff = data.blitz - (prev.blitz ?? data.blitz)
+
+document.getElementById("fideStandard").innerHTML =
+data.standard + arrow(stdDiff)
+
+document.getElementById("fideRapid").innerHTML =
+data.rapid + arrow(rapidDiff)
+
+document.getElementById("fideBlitz").innerHTML =
+data.blitz + arrow(blitzDiff)
 
 })
-.catch(e => console.log("Ошибка загрузки FIDE:", e))
+.catch(e => console.log("Ошибка загрузки рейтингов:", e))
 
 })
-
-// изменение рейтинга
-function ratingChange(current, previous){
-
-if(previous === null || previous === undefined) return ""
-
-const diff = current - previous
-
-if(diff > 0){
-return " ▲ +" + diff
-}
-
-if(diff < 0){
-return " ▼ " + diff
-}
-
-return " → 0"
-}
