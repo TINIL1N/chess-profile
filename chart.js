@@ -1,93 +1,132 @@
-document.addEventListener("DOMContentLoaded", () => {
-
 const history = [
-{date:"2019-12", std:null, rapid:null, blitz:1007},
-{date:"2020-04", std:null, rapid:1001, blitz:1007},
-{date:"2021-03", std:null, rapid:1019, blitz:1003},
-{date:"2022-01", std:null, rapid:1026, blitz:1009},
-{date:"2023-01", std:null, rapid:1163, blitz:1239},
-{date:"2024-01", std:1145, rapid:1503, blitz:1420},
-{date:"2025-01", std:1531, rapid:1767, blitz:1673},
-{date:"2026-03", std:1574, rapid:1852, blitz:1737}
+
+{date:"2019-12", classic:null, rapid:null, blitz:1007},
+{date:"2020-04", classic:null, rapid:1001, blitz:1007},
+{date:"2021-03", classic:null, rapid:1019, blitz:1003},
+{date:"2021-07", classic:null, rapid:1002, blitz:1000},
+{date:"2022-01", classic:null, rapid:1026, blitz:1009},
+{date:"2022-11", classic:null, rapid:1067, blitz:1009},
+{date:"2023-04", classic:null, rapid:1180, blitz:1304},
+{date:"2023-08", classic:1145, rapid:1374, blitz:1275},
+{date:"2023-12", classic:1145, rapid:1587, blitz:1420},
+{date:"2024-02", classic:1216, rapid:1503, blitz:1420},
+{date:"2024-07", classic:1536, rapid:1788, blitz:1652},
+{date:"2025-01", classic:1531, rapid:1767, blitz:1673},
+{date:"2025-10", classic:1574, rapid:1821, blitz:1821},
+{date:"2026-03", classic:1574, rapid:1852, blitz:1737}
+
 ]
 
-history.sort((a,b)=> new Date(a.date)-new Date(b.date))
 
-const labels = history.map(h=>h.date)
-const classic = history.map(h=>h.std)
-const rapid = history.map(h=>h.rapid)
-const blitz = history.map(h=>h.blitz)
 
-const rapidChange = rapid.map((v,i)=>{
-if(i===0 || rapid[i-1]===null) return null
-return v - rapid[i-1]
+const labels = history.map(h => h.date)
+const classic = history.map(h => h.classic)
+const rapid = history.map(h => h.rapid)
+const blitz = history.map(h => h.blitz)
+
+
+
+// поиск пикового рейтинга
+let peak = {
+rating:0,
+type:"",
+date:""
+}
+
+history.forEach(h=>{
+
+if(h.classic && h.classic > peak.rating){
+peak.rating = h.classic
+peak.type = "Classic"
+peak.date = h.date
+}
+
+if(h.rapid && h.rapid > peak.rating){
+peak.rating = h.rapid
+peak.type = "Rapid"
+peak.date = h.date
+}
+
+if(h.blitz && h.blitz > peak.rating){
+peak.rating = h.blitz
+peak.type = "Blitz"
+peak.date = h.date
+}
+
 })
 
-// peak рейтинг
-const peakRapid = Math.max(...rapid.filter(v=>v!==null))
-const peakIndex = rapid.indexOf(peakRapid)
 
+
+// создаём подпись под графиком
+const peakBlock = document.createElement("div")
+peakBlock.style.marginTop = "12px"
+peakBlock.style.color = "#9ca3af"
+peakBlock.style.fontSize = "14px"
+
+peakBlock.innerHTML =
+"Peak rating: <b style='color:white'>" +
+peak.rating +
+"</b> (" +
+peak.type +
+", " +
+peak.date +
+")"
+
+document.querySelector(".section canvas").after(peakBlock)
+
+
+
+// график
 const ctx = document.getElementById("ratingChart")
 
-new Chart(ctx,{
-type:"line",
-data:{
-labels:labels,
-datasets:[
+new Chart(ctx, {
+
+type: "line",
+
+data: {
+
+labels,
+
+datasets: [
+
 {
 label:"Classic",
 data:classic,
 borderColor:"#60a5fa",
-tension:0.35,
-pointRadius:3
+tension:0.3
 },
+
 {
 label:"Rapid",
 data:rapid,
 borderColor:"#22c55e",
-tension:0.35,
-pointRadius: rapid.map((v,i)=> i===peakIndex ? 7 : 3)
+tension:0.3
 },
+
 {
 label:"Blitz",
 data:blitz,
 borderColor:"#ef4444",
-tension:0.35,
-pointRadius:3
+tension:0.3
 }
+
 ]
+
 },
+
 options:{
-animation:{
-duration:2000,
-easing:"easeOutQuart"
-},
+
 plugins:{
-legend:{labels:{color:"white"}},
-tooltip:{
-callbacks:{
-afterLabel:function(context){
-
-if(context.dataset.label==="Rapid"){
-
-const change = rapidChange[context.dataIndex]
-
-if(change===null) return ""
-
-if(change>0) return "Рост ▲ +" + change
-if(change<0) return "Падение ▼ " + change
-}
-
-return ""
-}
-}
+legend:{
+labels:{color:"white"}
 }
 },
+
 scales:{
 x:{ticks:{color:"white"}},
 y:{ticks:{color:"white"}}
 }
+
 }
-})
 
 })
