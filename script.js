@@ -1,6 +1,6 @@
-// дата рождения
-const birthDate = new Date("2010-02-03")
+document.addEventListener("DOMContentLoaded", () => {
 
+const birthDate = new Date("2010-02-03")
 const today = new Date()
 
 let age = today.getFullYear() - birthDate.getFullYear()
@@ -14,9 +14,8 @@ age--
 document.getElementById("age").textContent = age
 
 
-// загрузка рейтингов FIDE
 fetch("fide.json")
-.then(r => r.json())
+.then(res => res.json())
 .then(data => {
 
 document.getElementById("fideStandard").textContent = data.standard
@@ -24,4 +23,6 @@ document.getElementById("fideRapid").textContent = data.rapid
 document.getElementById("fideBlitz").textContent = data.blitz
 
 })
-.catch(err => console.log("Ошибка загрузки FIDE", err))
+.catch(err => console.log(err))
+
+})
