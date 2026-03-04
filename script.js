@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+// возраст
 const birthDate = new Date("2010-02-03")
 const today = new Date()
 
@@ -14,8 +15,9 @@ age--
 document.getElementById("age").textContent = age
 
 
+// FIDE рейтинги
 fetch("fide.json")
-.then(res => res.json())
+.then(r => r.json())
 .then(data => {
 
 document.getElementById("fideStandard").textContent = data.standard
@@ -23,6 +25,6 @@ document.getElementById("fideRapid").textContent = data.rapid
 document.getElementById("fideBlitz").textContent = data.blitz
 
 })
-.catch(err => console.log(err))
+.catch(e => console.log(e))
 
 })
