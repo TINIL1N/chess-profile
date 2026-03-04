@@ -8,6 +8,8 @@
 
 <title>Максим — шахматный профиль</title>
 
+<link rel="icon" href="Me.png">
+
 <style>
 
 body{
@@ -29,7 +31,8 @@ padding:20px;
 background:#1f2937;
 padding:45px;
 border-radius:20px;
-width:360px;
+max-width:360px;
+width:100%;
 box-shadow:0 20px 40px rgba(0,0,0,0.5);
 text-align:center;
 }
@@ -39,6 +42,7 @@ width:130px;
 height:130px;
 border-radius:50%;
 object-fit:cover;
+object-position:center top;
 margin-bottom:15px;
 border:3px solid #3b82f6;
 }
@@ -68,9 +72,26 @@ text-transform:uppercase;
 
 .ratings{
 background:#111827;
-padding:12px;
+padding:14px;
 border-radius:10px;
-line-height:1.8;
+line-height:1.9;
+font-size:16px;
+}
+
+.rating{
+font-weight:600;
+}
+
+.classic{
+color:#60a5fa;
+}
+
+.rapid{
+color:#22c55e;
+}
+
+.blitz{
+color:#ef4444;
 }
 
 .buttons{
@@ -97,6 +118,13 @@ background:#1d4ed8;
 transform:translateY(-2px);
 }
 
+.footer{
+margin-top:20px;
+font-size:12px;
+color:#9ca3af;
+text-align:center;
+}
+
 </style>
 
 </head>
@@ -110,7 +138,7 @@ transform:translateY(-2px);
 <img class="photo" src="Me.png">
 
 <h1>Максим</h1>
-<p class="subtitle">♟ Шахматист</p>
+<p class="subtitle">♟ Турнирный шахматист</p>
 
 <div class="section">
 <h3>Возраст</h3>
@@ -122,15 +150,20 @@ transform:translateY(-2px);
 <h3>FIDE рейтинги</h3>
 
 <div class="ratings">
-Standard: <span id="fideStandard">...</span><br>
-Rapid: <span id="fideRapid">...</span><br>
-Blitz: <span id="fideBlitz">...</span>
+
+♟ Classic:
+<span class="rating classic" id="fideStandard">...</span>
+<br>
+
+⚡ Rapid:
+<span class="rating rapid" id="fideRapid">...</span>
+<br>
+
+🔥 Blitz:
+<span class="rating blitz" id="fideBlitz">...</span>
+
 </div>
 
-  <p class="subtitle">
-обновлено: <span id="updateDate">...</span>
-</p>
-  
 </div>
 
 <div class="section">
@@ -153,6 +186,10 @@ target="_blank">Telegram</a>
 
 </div>
 
+</div>
+
+<div class="footer">
+обновляется автоматически
 </div>
 
 </div>
