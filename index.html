@@ -2,16 +2,18 @@
 <html lang="ru">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Максим — шахматный профиль</title>
 
 <style>
 
 body{
 margin:0;
-font-family: system-ui, -apple-system, Arial;
-background: linear-gradient(135deg,#1f2937,#111827);
+font-family:system-ui,-apple-system,Arial;
+background:linear-gradient(135deg,#1f2937,#111827);
 color:white;
 }
 
@@ -25,16 +27,16 @@ padding:20px;
 
 .card{
 background:#1f2937;
-padding:40px;
+padding:45px;
 border-radius:20px;
-width:320px;
+width:360px;
 box-shadow:0 20px 40px rgba(0,0,0,0.5);
 text-align:center;
 }
 
 .photo{
-width:120px;
-height:120px;
+width:130px;
+height:130px;
 border-radius:50%;
 object-fit:cover;
 margin-bottom:15px;
@@ -42,20 +44,33 @@ border:3px solid #3b82f6;
 }
 
 h1{
-margin:10px 0;
-font-size:28px;
+margin:10px 0 5px 0;
+font-size:30px;
+}
+
+.subtitle{
+color:#9ca3af;
+margin-bottom:10px;
 }
 
 .section{
-margin-top:25px;
+margin-top:28px;
 text-align:left;
 }
 
 .section h3{
-margin-bottom:8px;
+margin-bottom:10px;
 color:#9ca3af;
-font-size:14px;
+font-size:13px;
 letter-spacing:1px;
+text-transform:uppercase;
+}
+
+.ratings{
+background:#111827;
+padding:12px;
+border-radius:10px;
+line-height:1.8;
 }
 
 .buttons{
@@ -83,6 +98,7 @@ transform:translateY(-2px);
 }
 
 </style>
+
 </head>
 
 <body>
@@ -95,7 +111,7 @@ transform:translateY(-2px);
 src="https://sun9-86.userapi.com/s/v1/ig2/irL-c49M-i5WB710hFCiOqbihHp73ZKchErwWo8AJ_wFcuNlZhacNLh4RQS36XRXNjzi_L3T2lAmez8FJqqZADO_.jpg">
 
 <h1>Максим</h1>
-<p>♟ Шахматист</p>
+<p class="subtitle">♟ Шахматист</p>
 
 <div class="section">
 <h3>Возраст</h3>
@@ -103,10 +119,15 @@ src="https://sun9-86.userapi.com/s/v1/ig2/irL-c49M-i5WB710hFCiOqbihHp73ZKchErwWo
 </div>
 
 <div class="section">
+
 <h3>FIDE рейтинги</h3>
+
+<div class="ratings">
 Standard: <span id="fideStandard">...</span><br>
 Rapid: <span id="fideRapid">...</span><br>
 Blitz: <span id="fideBlitz">...</span>
+</div>
+
 </div>
 
 <div class="section">
