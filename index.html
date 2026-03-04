@@ -54,11 +54,11 @@ font-size:30px;
 
 .subtitle{
 color:#9ca3af;
-margin-bottom:10px;
+margin-bottom:6px;
 }
 
 .about{
-margin-top:12px;
+margin-top:10px;
 font-size:14px;
 color:#cbd5e1;
 line-height:1.5;
@@ -159,7 +159,9 @@ margin-top:10px;
 <h1>Миклин Максим</h1>
 <p class="subtitle">Шахматы ♟ Челябинск</p>
 
-<div class="about" id="aboutText"></div>
+<div class="about" id="aboutText">
+16-летний шахматист из Челябинска. Участник и призёр международных турниров FIDE. Тренирую детей и взрослых любого уровня — от первых шагов в шахматах до турнирной подготовки.
+</div>
 
 
 <div class="section">
@@ -238,24 +240,6 @@ target="_blank">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="script.js"></script>
 <script src="chart.js"></script>
-
-<script>
-
-// динамическое описание
-const birthDate = new Date("2010-02-03")
-const today = new Date()
-
-let age = today.getFullYear() - birthDate.getFullYear()
-const m = today.getMonth() - birthDate.getMonth()
-
-if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-age--
-}
-
-document.getElementById("aboutText").innerText =
-`${age}-летний шахматист из Челябинска. Участник рейтинговых турниров FIDE, интересуюсь стратегией, обучением и развитием шахматного мышления.`
-
-</script>
 
 </body>
 </html>
