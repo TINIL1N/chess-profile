@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-// возраст
+// дата рождения
 const birthDate = new Date("2010-02-03")
 const today = new Date()
 
@@ -11,11 +11,12 @@ if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
 age--
 }
 
-document.getElementById("age").textContent = age
+// описание
+document.getElementById("aboutText").textContent =
+age + "-летний шахматист из Челябинска. Участник и призёр международных турниров FIDE. Тренирую детей и взрослых любого уровня — от первых шагов в шахматах до турнирной подготовки."
 
 
-
-// функция стрелочек рейтинга
+// стрелки изменения рейтинга
 function arrow(diff){
 
 if(diff > 0){
@@ -30,8 +31,7 @@ return `<span style="color:#9ca3af"> → 0</span>`
 }
 
 
-
-// загрузка FIDE рейтингов
+// загрузка рейтингов
 fetch("fide.json")
 .then(r => r.json())
 .then(data => {
