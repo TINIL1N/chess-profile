@@ -31,3 +31,21 @@ if(blitz) blitz.textContent = data.blitz
 .catch(e => console.log("Ошибка загрузки FIDE:", e))
 
 })
+
+// изменение рейтинга
+function ratingChange(current, previous){
+
+if(previous === null || previous === undefined) return ""
+
+const diff = current - previous
+
+if(diff > 0){
+return " ▲ +" + diff
+}
+
+if(diff < 0){
+return " ▼ " + diff
+}
+
+return " → 0"
+}
