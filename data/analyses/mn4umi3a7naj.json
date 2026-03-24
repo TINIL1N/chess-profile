@@ -1,0 +1,168 @@
+{
+    "id": "mn4umi3a7naj",
+    "title": "qwerty",
+    "excerpt": "С конём",
+    "tags": [
+        "Миттельшпиль",
+        "Эндшпиль"
+    ],
+    "blocks": [
+        {
+            "id": "b_1774370805416_0",
+            "type": "text",
+            "text": "Идём",
+            "caption": "",
+            "isKey": false,
+            "fen": "",
+            "boardPosition": [],
+            "boardAnnotations": [],
+            "boardOrientation": "white"
+        },
+        {
+            "id": "b_1774370805417_1",
+            "type": "position",
+            "text": "",
+            "caption": "Плохой ход",
+            "isKey": true,
+            "fen": "",
+            "boardPosition": {
+                "a8": "bR",
+                "b8": "bN",
+                "c8": "bB",
+                "e8": "bK",
+                "f8": "bB",
+                "g8": "bN",
+                "h8": "bR",
+                "a7": "bP",
+                "b7": "bP",
+                "c7": "bP",
+                "d7": "bP",
+                "e7": "bP",
+                "f7": "bP",
+                "g7": "bP",
+                "h7": "bP",
+                "a2": "wP",
+                "b2": "wP",
+                "c2": "wP",
+                "d2": "wP",
+                "e2": "wP",
+                "h2": "wP",
+                "a1": "wR",
+                "b1": "wN",
+                "c1": "wB",
+                "d1": "wQ",
+                "e1": "wK",
+                "f1": "wB",
+                "g1": "wN",
+                "h1": "wR",
+                "c5": "bQ",
+                "f3": "wP",
+                "d4": "bB",
+                "a5": "wR",
+                "b3": "wR"
+            },
+            "boardAnnotations": [
+                {
+                    "type": "arrow",
+                    "from": "g3",
+                    "to": "d6",
+                    "color": "#C8A96E"
+                },
+                {
+                    "type": "arrow",
+                    "from": "g2",
+                    "to": "g4",
+                    "color": "#C8A96E"
+                },
+                {
+                    "type": "arrow",
+                    "from": "h3",
+                    "to": "d3",
+                    "color": "#C8A96E"
+                },
+                {
+                    "type": "arrow",
+                    "from": "e6",
+                    "to": "f5",
+                    "color": "#C8A96E"
+                },
+                {
+                    "type": "arrow",
+                    "from": "f5",
+                    "to": "f4",
+                    "color": "#C8A96E"
+                },
+                {
+                    "type": "highlight",
+                    "square": "b5",
+                    "color": "#f87171"
+                },
+                {
+                    "type": "highlight",
+                    "square": "c6",
+                    "color": "#4ade80"
+                },
+                {
+                    "type": "highlight",
+                    "square": "a6",
+                    "color": "#60a5fa"
+                },
+                {
+                    "type": "highlight",
+                    "square": "b7",
+                    "color": "#ffffff"
+                },
+                {
+                    "type": "highlight",
+                    "square": "b6",
+                    "color": "#C8A96E"
+                },
+                {
+                    "type": "circle",
+                    "square": "g5",
+                    "color": "#C8A96E"
+                },
+                {
+                    "type": "circle",
+                    "square": "h6",
+                    "color": "#C8A96E"
+                },
+                {
+                    "type": "circle",
+                    "square": "h7",
+                    "color": "#C8A96E"
+                },
+                {
+                    "type": "circle",
+                    "square": "g7",
+                    "color": "#C8A96E"
+                }
+            ],
+            "boardOrientation": "white"
+        },
+        {
+            "id": "b_1774370805417_2",
+            "type": "text",
+            "text": "Эта катка ужасн",
+            "caption": "",
+            "isKey": false,
+            "fen": "",
+            "boardPosition": [],
+            "boardAnnotations": [],
+            "boardOrientation": "white"
+        },
+        {
+            "id": "b_1774370898943_3",
+            "type": "conclusion",
+            "text": "Выйду ночью в поле с конём",
+            "caption": "",
+            "isKey": false,
+            "fen": "",
+            "boardPosition": [],
+            "boardAnnotations": [],
+            "boardOrientation": "white"
+        }
+    ],
+    "date": "2026-03-24T16:48:26.902Z",
+    "updated": "2026-03-24T16:48:26.902Z"
+}
