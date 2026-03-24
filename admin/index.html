@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Админка — Шахматный аналитик</title>
+
+  <!-- Chessboard.js -->
+  <link rel="stylesheet"
+    href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
+  <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0A0A0A;
+      --bg-alt:     #111;
+      --bg-card:    #161616;
+      --bg-hover:   #1C1C1C;
+      --text:       #F5F5F5;
+      --text-sec:   #A0A0A0;
+      --text-muted: #6B6B6B;
+      --accent:     #C8A96E;
+      --border:     #242424;
+      --border-l:   #2E2E2E;
+      --danger:     #f87171;
+      --success:    #4ade80;
+      --radius:     4px;
+    }
+    /* Запрещаем перетаскивание картинок доски */
+.board-b72b1 img {
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* В режиме расстановки разрешаем */
+.board-b72b1.draggable-pieces img {
+  pointer-events: auto;
+}
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .app { display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: var(--bg-alt);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
+    }
+
+    .main {
+      margin-left: 260px;
+      flex: 1;
+      padding: 2rem;
+      max-width: 960px;
+    }
+
+    .sidebar__logo {
+      padding: 1.25rem 1.25rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 1rem;
+      color: var(--accent);
+    }
+
+    .sidebar__logo span {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .sidebar__section {
+      padding: 1rem 1rem 0.4rem;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    .sidebar__btn {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      width: calc(100% - 1rem);
+      padding: 0.6rem 1rem;
+      margin: 0.1rem 0.5rem;
+      background: none;
+      border: none;
+      color: var(--text-sec);
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s, color 0.15s;
+      border-radius: var(--radius);
+      font-family: inherit;
+    }
+
+    .sidebar__btn:hover { background: var(--bg-hover); color: var(--text); }
+    .sidebar__btn.active { background: var(--bg-hover); color: var(--accent); }
+
+    .sidebar__analyses { flex: 1; overflow-y: auto; }
+
+    .analysis-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 1rem;
+      margin: 0.1rem 0.5rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.15s;
+      gap: 0.5rem;
+    }
+
+    .analysis-item:hover { background: var(--bg-hover); }
+    .analysis-item.active { background: var(--bg-hover); }
+
+    .analysis-item__title {
+      font-size: 0.78rem;
+      color: var(--text-sec);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .analysis-item.active .analysis-item__title { color: var(--accent); }
+
+    .analysis-item__del {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.15rem;
+      font-size: 0.7rem;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s;
+    }
+
+    .analysis-item:hover .analysis-item__del { opacity: 1; }
+    .analysis-item__del:hover { color: var(--danger); }
+
+    .sidebar__footer {
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── AUTH ── */
+    #screen-auth {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .auth-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 340px;
+    }
+
+    .auth-box h2 {
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+      color: var(--text);
+    }
+
+    /* ── SCREENS ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .page-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ── FIELDS ── */
+    .field { margin-bottom: 1.25rem; }
+
+    .field label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .field input[type="text"],
+    .field input[type="password"],
+    .field textarea {
+      width: 100%;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.6rem 0.875rem;
+      color: var(--text);
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+
+    .field input:focus,
+    .field textarea:focus { border-color: var(--accent); }
+    .field input::placeholder,
+    .field textarea::placeholder { color: var(--text-muted); }
+    .field textarea { resize: vertical; min-height: 80px; }
+
+    /* ── TAGS ── */
+    .tags-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.65rem;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-l);
+      border-radius: 99px;
+      font-size: 0.7rem;
+      color: var(--text-sec);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tag.selected {
+      background: rgba(200,169,110,0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── BLOCKS ── */
+    .blocks-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .block:hover { border-color: var(--border-l); }
+
+    .block__header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      cursor: grab;
+      user-select: none;
+    }
+
+    .block__header:active { cursor: grabbing; }
+    .block__drag { color: var(--text-muted); font-size: 0.75rem; }
+
+    .block__type {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      flex: 1;
+    }
+
+    .block--text .block__type     { color: #60a5fa; }
+    .block--position .block__type { color: var(--accent); }
+    .block--conclusion .block__type { color: #4ade80; }
+
+    .block__del {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.4rem;
+      border-radius: 2px;
+      transition: color 0.15s;
+    }
+
+    .block__del:hover { color: var(--danger); }
+    .block__body { padding: 1rem; }
+
+    /* ── BOARD ── */
+    .position-wrap {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .board-outer {
+      position: relative;
+    }
+
+    .board-container {
+      position: relative;
+      width: 100%;
+    }
+
+    .arrows-svg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* ── MODE TABS ── */
+    .mode-tabs {
+      display: flex;
+      gap: 0.3rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .mode-tab {
+      flex: 1;
+      padding: 0.45rem 0.5rem;
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-sec);
+      font-size: 0.72rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .mode-tab:hover { color: var(--text); border-color: var(--border-l); }
+    .mode-tab.active {
+      background: rgba(200,169,110,0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── PIECES PANEL ── */
+    .pieces-panel {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .piece-btn {
+      aspect-ratio: 1;
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .piece-btn:hover { border-color: var(--border-l); }
+    .piece-btn.active {
+      border-color: var(--accent);
+      background: rgba(200,169,110,0.15);
+    }
+
+    .piece-btn.erase-btn {
+      font-size: 0.68rem;
+      color: var(--danger);
+      border-color: rgba(248,113,113,0.3);
+      grid-column: span 6;
+      aspect-ratio: auto;
+      padding: 0.3rem;
+    }
+
+    /* ── TOOL GROUP ── */
+    .canvas-tools {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .tool-group {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem;
+    }
+
+    .tool-group__label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .tool-btns {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .tool-btn {
+      padding: 0.35rem 0.7rem;
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-sec);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .tool-btn:hover { border-color: var(--border-l); color: var(--text); }
+    .tool-btn.active {
+      background: rgba(200,169,110,0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .color-btns { display: flex; gap: 0.4rem; }
+
+    .color-btn {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .color-btn.active { border-color: var(--text); }
+
+    /* ── FEN INPUT ── */
+    .fen-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.5rem 0.7rem;
+      color: var(--text);
+      font-size: 0.72rem;
+      outline: none;
+      font-family: monospace;
+      transition: border-color 0.2s;
+    }
+
+    .fen-input:focus { border-color: var(--accent); }
+    .fen-input.fen-error { border-color: var(--danger); }
+    .fen-input.fen-ok    { border-color: var(--success); }
+
+    /* ── ANALYSES GRID ── */
+    .analyses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+
+    .analysis-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .analysis-card:hover {
+      border-color: var(--border-l);
+      transform: translateY(-2px);
+    }
+
+    .analysis-card__title {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    .analysis-card__meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .analysis-card__tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+
+    .analysis-card__actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.1rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      border-radius: var(--radius);
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, opacity 0.15s, transform 0.15s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn--primary { background: var(--accent); color: #0A0A0A; }
+    .btn--primary:hover { background: #D4B97E; }
+
+    .btn--outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border-l);
+    }
+    .btn--outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    .btn--ghost { background: transparent; color: var(--text-sec); }
+    .btn--ghost:hover { color: var(--text); background: var(--bg-hover); }
+
+    .btn--danger {
+      background: rgba(248,113,113,0.1);
+      color: var(--danger);
+      border: 1px solid rgba(248,113,113,0.2);
+    }
+    .btn--danger:hover { background: rgba(248,113,113,0.18); }
+
+    .btn--sm { padding: 0.35rem 0.75rem; font-size: 0.75rem; }
+    .btn--lg { padding: 0.75rem 1.5rem; font-size: 0.9rem; }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .status-bar.show { opacity: 1; transform: translateY(0); }
+    .status-bar.ok {
+      background: rgba(74,222,128,0.15);
+      color: var(--success);
+      border: 1px solid rgba(74,222,128,0.25);
+    }
+    .status-bar.err {
+      background: rgba(248,113,113,0.15);
+      color: var(--danger);
+      border: 1px solid rgba(248,113,113,0.25);
+    }
+
+    /* ── EMPTY ── */
+    .empty { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
+    .empty h3 { font-size: 1rem; color: var(--text-sec); margin-bottom: 0.5rem; }
+    .empty p  { font-size: 0.82rem; margin-bottom: 1.5rem; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.5rem 0;
+    }
+
+    /* ── EDITABLE (Excel) ── */
+    .editable {
+      min-height: 140px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.9rem;
+      font-size: 0.85rem;
+      color: var(--text);
+      outline: none;
+      overflow-x: auto;
+      transition: border-color 0.2s;
+    }
+
+    .editable:focus { border-color: var(--accent); }
+    .editable table { border-collapse: collapse; width: 100%; }
+    .editable th, .editable td {
+      border: 1px solid var(--border-l);
+      padding: 0.4rem 0.7rem;
+      color: var(--text-sec);
+    }
+    .editable th { background: var(--bg-hover); color: var(--text); }
+
+    /* ── INFO ── */
+    .info-block {
+      max-width: 580px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 2;
+    }
+
+    .info-block strong { color: var(--text); }
+    .info-block code   { color: var(--accent); }
+
+    /* ── chessboard overrides ── */
+    .board-b72b1 { border-radius: 2px; }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 1rem; }
+      .position-wrap { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- АВТОРИЗАЦИЯ -->
+<div id="screen-auth">
+  <div class="auth-box">
+    <h2>🔐 Вход в админку</h2>
+    <div class="field">
+      <label>Пароль</label>
+      <input type="password" id="pwd-input" placeholder="Введи пароль" />
+    </div>
+    <div id="auth-err"
+      style="font-size:0.78rem;color:var(--danger);margin-bottom:0.75rem;min-height:1.2em">
+    </div>
+    <button class="btn btn--primary" style="width:100%" onclick="doLogin()">Войти</button>
+  </div>
+</div>
+
+<!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
+<div class="app" id="app" style="display:none">
+
+  <aside class="sidebar">
+    <div class="sidebar__logo">
+      ♟ Панель управления
+      <span>Шахматный аналитик</span>
+    </div>
+
+    <div class="sidebar__section">Разборы</div>
+    <button class="sidebar__btn active" id="nav-list" onclick="showScreen('list')">
+      📋 Все разборы
+    </button>
+    <button class="sidebar__btn" id="nav-editor" onclick="newAnalysis()">
+      ✏️ Новый разбор
+    </button>
+
+    <div class="sidebar__section">Список</div>
+    <div class="sidebar__analyses" id="sidebar-analyses"></div>
+
+    <div class="sidebar__section">Сайт</div>
+    <button class="sidebar__btn" id="nav-settings" onclick="showScreen('settings')">
+      ⚙️ Настройки
+    </button>
+    <button class="sidebar__btn" id="nav-excel" onclick="showScreen('excel')">
+      📊 Таблица цен
+    </button>
+    <button class="sidebar__btn" id="nav-info" onclick="showScreen('info')">
+      ℹ️ Справка
+    </button>
+
+    <div class="sidebar__footer">
+      <button class="btn btn--ghost btn--sm" style="width:100%" onclick="doLogout()">
+        Выйти
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- СПИСОК РАЗБОРОВ -->
+    <div class="screen active" id="screen-list">
+      <div class="page-header">
+        <div class="page-title">Все разборы</div>
+        <button class="btn btn--primary" onclick="newAnalysis()">+ Новый разбор</button>
+      </div>
+      <div class="analyses-grid" id="analyses-grid"></div>
+    </div>
+
+    <!-- РЕДАКТОР -->
+    <div class="screen" id="screen-editor">
+      <div class="page-header">
+        <div class="page-title" id="editor-title">Новый разбор</div>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn btn--outline" onclick="showScreen('list')">← Назад</button>
+          <button class="btn btn--primary" onclick="saveAnalysis()">💾 Сохранить</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Название разбора *</label>
+        <input type="text" id="f-title" placeholder="Например: Жертва ферзя на h7" />
+      </div>
+
+      <div class="field">
+        <label>Краткое описание</label>
+        <textarea id="f-excerpt" placeholder="2–3 предложения о чём разбор..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Теги</label>
+        <div class="tags-wrap" id="tags-wrap"></div>
+      </div>
+
+      <hr class="divider" />
+
+      <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:1rem;
+                  text-transform:uppercase;letter-spacing:0.08em">
+        Блоки разбора
+      </div>
+
+      <div class="blocks-list" id="blocks-list"></div>
+
+      <div style="display:flex;gap:0.75rem;margin-bottom:2rem;flex-wrap:wrap">
+        <button class="btn btn--outline" onclick="addBlock('text')">📝 + Текст</button>
+        <button class="btn btn--outline" onclick="addBlock('position')">♟ + Позиция</button>
+        <button class="btn btn--outline" onclick="addBlock('conclusion')">💡 + Вывод</button>
+      </div>
+
+      <hr class="divider" />
+
+      <div style="display:flex;gap:0.75rem;justify-content:space-between;flex-wrap:wrap">
+        <button class="btn btn--danger" id="btn-delete"
+          onclick="deleteAnalysis()" style="display:none">
+          🗑 Удалить разбор
+        </button>
+        <button class="btn btn--primary btn--lg" onclick="saveAnalysis()">
+          💾 Сохранить разбор
+        </button>
+      </div>
+    </div>
+
+    <!-- НАСТРОЙКИ -->
+    <div class="screen" id="screen-settings">
+      <div class="page-header">
+        <div class="page-title">Настройки сайта</div>
+      </div>
+      <div style="max-width:520px">
+        <div class="field">
+          <label>Контактный Telegram</label>
+          <input type="text" id="meta-telegram" placeholder="@username" />
+        </div>
+        <div class="field">
+          <label>Контактный Email</label>
+          <input type="text" id="meta-email" placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label>Подзаголовок на главной</label>
+          <input type="text" id="meta-subtitle" placeholder="Разбираю ваши партии..." />
+        </div>
+        <div class="field">
+          <label>Имя автора</label>
+          <input type="text" id="meta-name" placeholder="Александр Петров" />
+        </div>
+        <div class="field">
+          <label>О себе</label>
+          <textarea id="meta-about" rows="4" placeholder="Играю в шахматы..."></textarea>
+        </div>
+        <button class="btn btn--primary" onclick="saveMeta()">💾 Сохранить</button>
+      </div>
+    </div>
+
+    <!-- ТАБЛИЦА ЦЕН -->
+    <div class="screen" id="screen-excel">
+      <div class="page-header">
+        <div class="page-title">Таблица цен из Excel</div>
+      </div>
+      <div style="max-width:680px">
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.7">
+          Скопируй таблицу из Excel (Ctrl+C) и вставь сюда (Ctrl+V).
+        </p>
+        <div style="display:flex;align-items:center;justify-content:space-between;
+                    margin-bottom:0.5rem;gap:0.5rem;flex-wrap:wrap">
+          <span style="font-size:0.75rem;color:var(--text-muted)">Вставь таблицу:</span>
+          <div style="display:flex;gap:0.5rem">
+            <button class="btn btn--outline btn--sm" onclick="clearTable()">Очистить</button>
+            <button class="btn btn--outline btn--sm" onclick="togglePreview()">Превью HTML</button>
+          </div>
+        </div>
+        <div id="excel-input" class="editable" contenteditable="true"
+          data-placeholder="Вставь таблицу из Excel (Ctrl+V)..."></div>
+        <div id="clean-preview"
+          style="display:none;margin-top:0.75rem;padding:0.75rem;background:#0D0D0D;
+                 border:1px solid var(--border);border-radius:4px;font-size:0.72rem;
+                 color:#555;word-break:break-all;max-height:120px;overflow:auto">
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap">
+          <button class="btn btn--primary" onclick="saveExcelTable()">💾 Сохранить</button>
+          <button class="btn btn--danger" onclick="deleteExcelTable()">🗑 Удалить</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- СПРАВКА -->
+    <div class="screen" id="screen-info">
+      <div class="page-header">
+        <div class="page-title">Справка</div>
+      </div>
+      <div class="info-block">
+        <p>📁 <strong>data/analyses/*.json</strong> — каждый разбор отдельно</p>
+        <p>📁 <strong>data/analyses/index.json</strong> — список разборов</p>
+        <p>📁 <strong>data/content.json</strong> — настройки и таблица цен</p>
+        <p>🐘 <strong>admin/save.php</strong> — бэкенд</p>
+        <br>
+        <p><strong>Как работать с доской:</strong></p>
+        <p>1. Режим <code>FEN</code> — вставь FEN из Lichess</p>
+        <p>2. Режим <code>Расстановка</code> — кликай фигуры и клетки</p>
+        <p>3. Режим <code>Рисование</code> — стрелки, клетки, круги</p>
+        <br>
+        <p><strong>Как получить FEN из Lichess:</strong></p>
+        <p>Открой партию → нужный ход → под доской будет FEN</p>
+        <br>
+        <p><strong>Пароль:</strong> <code>admin/save.php</code> → <code>ADMIN_PASSWORD</code></p>
+        <p><strong>Запуск:</strong> <code>php -S localhost:8000</code></p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="status-bar" id="status-bar"></div>
+
+<script src="admin.js"></script>
+</body>
+</html>
