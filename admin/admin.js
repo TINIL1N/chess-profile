@@ -1,12 +1,8 @@
 // ============================================================
 //  CONFIG
 // ============================================================
-
 const CFG = {
-  saveUrl:    './save.php',
-  dataUrl:    '../data/analyses/',
-  indexUrl:   '../data/analyses/index.json',
-  metaUrl:    '../data/content.json',
+  apiUrl:     '/api/backend', // Наш единый адрес для всех запросов
   sessionKey: 'chess_admin_token',
 };
 
@@ -107,14 +103,13 @@ function showScreen(name) {
 
 async function loadAnalysesList() {
   try {
-    const res = await fetch(CFG.indexUrl + '?t=' + Date.now());
+    const res = await fetch(CFG.apiUrl + '?action=get_index');
     if (!res.ok) { state.analyses = []; return; }
     state.analyses = await res.json();
   } catch {
     state.analyses = [];
   }
 }
-
 function renderAnalysesList() {
   const grid = document.getElementById('analyses-grid');
 
@@ -194,7 +189,7 @@ function newAnalysis() {
 
 async function editAnalysis(id) {
   try {
-    const res = await fetch(`${CFG.dataUrl}${id}.json?t=` + Date.now());
+    const res = await fetch(`${CFG.apiUrl}?action=get_analysis&id=${id}`);
     if (!res.ok) throw new Error();
     const data = await res.json();
 
@@ -231,7 +226,6 @@ async function editAnalysis(id) {
     showStatus('Не удалось загрузить разбор', 'err');
   }
 }
-
 // ============================================================
 //  TAGS
 // ============================================================
@@ -1220,7 +1214,7 @@ async function deleteAnalysisById(id) {
 
 async function loadMeta() {
   try {
-    const res = await fetch(CFG.metaUrl + '?t=' + Date.now());
+    const res = await fetch(CFG.apiUrl + '?action=get_meta');
     if (!res.ok) return;
     const data = await res.json();
     const set = (id, val) => {
@@ -1327,7 +1321,7 @@ function togglePreview() {
 // ============================================================
 
 async function api(action, payload = {}) {
-  const res = await fetch(CFG.saveUrl, {
+  const res = await fetch(CFG.apiUrl, { // Используем новый apiUrl
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, token: state.token, ...payload }),
