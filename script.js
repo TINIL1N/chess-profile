@@ -224,7 +224,7 @@ async function loadAndRenderAnalyses() {
 
         el.innerHTML = recent.map(a => `
           <article class="card" style="cursor:pointer"
-            onclick="window.location.href='./analysis.html?id=${escHtml(a.id)}'">
+            onclick="window.location.href='./analysis?id=${escHtml(a.id)}'">
             <div class="card__img">
               ${a.coverImage
                 ? `<img src="${escHtml(a.coverImage)}" alt="${escHtml(a.title)}" loading="lazy">`
