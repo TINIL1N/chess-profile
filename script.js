@@ -352,7 +352,8 @@ function renderPricing(plans =[]) {
     </div>
   `).join('');
 }
-function es(str) { return String(str ?? '').replace(/</g, '&lt;'); 
+function es(str) { return String(str ?? '').replace(/</g, '&lt;'); }
+
 // ============================================================
 //  РЕНДЕР — О СЕБЕ
 // ============================================================
@@ -697,4 +698,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 6. Анимации
   setTimeout(initAnimations, 150);
-});}
+});
