@@ -708,8 +708,8 @@
     <button class="sidebar__btn" id="nav-settings" onclick="showScreen('settings')">
       ⚙️ Настройки
     </button>
-    <button class="sidebar__btn" id="nav-excel" onclick="showScreen('excel')">
-      📊 Таблица цен
+    <button class="sidebar__btn" id="nav-pricing" onclick="showScreen('pricing')">
+    📊 Тарифы и цены
     </button>
     <button class="sidebar__btn" id="nav-info" onclick="showScreen('info')">
       ℹ️ Справка
@@ -817,35 +817,21 @@
     </div>
 
     <!-- ТАБЛИЦА ЦЕН -->
-    <div class="screen" id="screen-excel">
-      <div class="page-header">
-        <div class="page-title">Таблица цен из Excel</div>
-      </div>
-      <div style="max-width:680px">
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.7">
-          Скопируй таблицу из Excel (Ctrl+C) и вставь сюда (Ctrl+V).
-        </p>
-        <div style="display:flex;align-items:center;justify-content:space-between;
-                    margin-bottom:0.5rem;gap:0.5rem;flex-wrap:wrap">
-          <span style="font-size:0.75rem;color:var(--text-muted)">Вставь таблицу:</span>
-          <div style="display:flex;gap:0.5rem">
-            <button class="btn btn--outline btn--sm" onclick="clearTable()">Очистить</button>
-            <button class="btn btn--outline btn--sm" onclick="togglePreview()">Превью HTML</button>
-          </div>
-        </div>
-        <div id="excel-input" class="editable" contenteditable="true"
-          data-placeholder="Вставь таблицу из Excel (Ctrl+V)..."></div>
-        <div id="clean-preview"
-          style="display:none;margin-top:0.75rem;padding:0.75rem;background:#0D0D0D;
-                 border:1px solid var(--border);border-radius:4px;font-size:0.72rem;
-                 color:#555;word-break:break-all;max-height:120px;overflow:auto">
-        </div>
-        <div style="display:flex;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap">
-          <button class="btn btn--primary" onclick="saveExcelTable()">💾 Сохранить</button>
-          <button class="btn btn--danger" onclick="deleteExcelTable()">🗑 Удалить</button>
-        </div>
-      </div>
-    </div>
+    <!-- РЕДАКТОР ТАРИФОВ (заменяет старый screen-excel) -->
+<div class="screen" id="screen-pricing">
+  <div class="page-header">
+    <div class="page-title">Тарифы и цены</div>
+    <button class="btn btn--primary" onclick="savePricing()">💾 Сохранить тарифы</button>
+  </div>
+  
+  <div id="pricing-editor-list" style="display:flex; flex-direction:column; gap:1.5rem;">
+    <!-- Карточки для редактирования будут появляться здесь -->
+  </div>
+  
+  <div style="margin-top:1.5rem;">
+    <button class="btn btn--outline" onclick="addPricingPlan()">+ Добавить тариф</button>
+  </div>
+</div>
 
     <!-- СПРАВКА -->
     <div class="screen" id="screen-info">
