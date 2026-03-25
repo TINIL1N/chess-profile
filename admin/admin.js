@@ -1249,10 +1249,8 @@ async function loadMeta() {
     set('meta-subtitle', data.subtitle);
     set('meta-name',     data.name);
     set('meta-about',    data.about);
-    if (data.excelTable) {
-      const el = document.getElementById('excel-input');
-      if (el) el.innerHTML = data.excelTable;
-    }
+    state.pricingPlans = data.pricingPlans || [];
+    renderPricingEditor(state.pricingPlans);
   } catch {}
 }
 
@@ -1272,71 +1270,92 @@ async function saveMeta() {
 }
 
 // ============================================================
-//  EXCEL TABLE
+//  PRICING PLANS EDITOR
 // ============================================================
 
-function sanitizeTableHTML(html) {
-  const parser  = new DOMParser();
-  const doc     = parser.parseFromString(html, 'text/html');
-  const ALLOWED = ['TABLE','THEAD','TBODY','TFOOT','TR','TH','TD','CAPTION'];
+function renderPricingEditor(plans = []) {
+  const listEl = document.getElementById('pricing-editor-list');
+  if (!listEl) return;
 
-  function clean(node) {
-    if (node.nodeType === Node.TEXT_NODE) return node.cloneNode();
-    if (node.nodeType !== Node.ELEMENT_NODE) return null;
-    if (!ALLOWED.includes(node.tagName)) {
-      const f = document.createDocumentFragment();
-      node.childNodes.forEach(c => { const n=clean(c); if(n) f.appendChild(n); });
-      return f;
+  listEl.innerHTML = plans.map(plan => `
+    <div class="block" data-plan-id="${plan.id}">
+      <div class="block__header" style="background:var(--bg-alt);">
+        <span class="block__drag">⠿</span>
+        <span class="block__type" style="color:var(--text-sec);">${es(plan.name) || 'Новый тариф'}</span>
+        <button class="block__del" onclick="removePricingPlan('${plan.id}')">✕</button>
+      </div>
+      <div class="block__body" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div class="field">
+          <label>Название</label>
+          <input type="text" class="plan-name" value="${es(plan.name || '')}">
+        </div>
+        <div class="field">
+          <label>Цена</label>
+          <input type="text" class="plan-price" value="${es(plan.price || '')}">
+        </div>
+        <div class="field" style="grid-column:1/-1;">
+          <label>Краткое описание</label>
+          <input type="text" class="plan-desc" value="${es(plan.desc || '')}">
+        </div>
+        <div class="field" style="grid-column:1/-1;">
+          <label>Преимущества (каждое с новой строки)</label>
+          <textarea class="plan-features" rows="5" style="min-height:100px;">${es(plan.features ? plan.features.join('\\n') : '')}</textarea>
+        </div>
+        <div class="field">
+          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+            <input type="checkbox" class="plan-highlighted" ${plan.highlighted ? 'checked' : ''} style="width:16px;height:16px;">
+            Выделить тариф (рамка и значок "Популярное")
+          </label>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addPricingPlan() {
+  const newPlan = {
+    id: `plan_${Date.now()}`,
+    name: 'Новый тариф',
+    price: '0 ₽',
+    desc: '',
+    features: [],
+    highlighted: false,
+  };
+  state.pricingPlans = [...(state.pricingPlans || []), newPlan];
+  renderPricingEditor(state.pricingPlans);
+}
+
+function removePricingPlan(id) {
+  if (!confirm('Удалить этот тариф?')) return;
+  state.pricingPlans = state.pricingPlans.filter(p => p.id !== id);
+  renderPricingEditor(state.pricingPlans);
+}
+
+async function savePricing() {
+  const planElements = document.querySelectorAll('#pricing-editor-list .block');
+  const newPlans = Array.from(planElements).map(el => {
+    const featuresText = el.querySelector('.plan-features').value || '';
+    return {
+      id: el.dataset.planId,
+      name: el.querySelector('.plan-name').value.trim(),
+      price: el.querySelector('.plan-price').value.trim(),
+      desc: el.querySelector('.plan-desc').value.trim(),
+      features: featuresText.split('\\n').map(s => s.trim()).filter(Boolean),
+      highlighted: el.querySelector('.plan-highlighted').checked,
+    };
+  });
+
+  try {
+    const res = await api('save_meta', { data: { pricingPlans: newPlans, excelTable: '' } }); // Также очищаем старую таблицу
+    if (res.ok) {
+      state.pricingPlans = newPlans;
+      showStatus('✓ Тарифы сохранены', 'ok');
+    } else {
+      showStatus('Ошибка сохранения тарифов', 'err');
     }
-    const el = document.createElement(node.tagName);
-    if (['TD','TH'].includes(node.tagName)) {
-      ['colspan','rowspan'].forEach(a => {
-        if (node.getAttribute(a)) el.setAttribute(a, node.getAttribute(a));
-      });
-    }
-    node.childNodes.forEach(c => { const n=clean(c); if(n) el.appendChild(n); });
-    return el;
+  } catch {
+    showStatus('Нет связи с сервером', 'err');
   }
-
-  const table = doc.querySelector('table');
-  if (!table) return '';
-  const wrap = document.createElement('div');
-  wrap.appendChild(clean(table));
-  return wrap.innerHTML;
-}
-
-async function saveExcelTable() {
-  const raw   = document.getElementById('excel-input').innerHTML;
-  const clean = sanitizeTableHTML(raw);
-  if (!clean) { showStatus('Нет таблицы', 'err'); return; }
-  try {
-    const res = await api('save_meta', { data: { excelTable: clean } });
-    if (res.ok) showStatus('✓ Таблица сохранена', 'ok');
-    else        showStatus('Ошибка', 'err');
-  } catch { showStatus('Нет связи', 'err'); }
-}
-
-async function deleteExcelTable() {
-  if (!confirm('Удалить таблицу?')) return;
-  document.getElementById('excel-input').innerHTML = '';
-  try {
-    await api('save_meta', { data: { excelTable: '' } });
-    showStatus('Таблица удалена', 'ok');
-  } catch {}
-}
-
-function clearTable() {
-  document.getElementById('excel-input').innerHTML = '';
-  document.getElementById('clean-preview').style.display = 'none';
-}
-
-let _previewVisible = false;
-function togglePreview() {
-  const clean   = sanitizeTableHTML(document.getElementById('excel-input').innerHTML);
-  const preview = document.getElementById('clean-preview');
-  _previewVisible = !_previewVisible;
-  preview.style.display = _previewVisible ? 'block' : 'none';
-  if (_previewVisible) preview.textContent = clean || '(пусто)';
 }
 
 // ============================================================
