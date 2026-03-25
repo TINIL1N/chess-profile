@@ -1145,6 +1145,28 @@ async function saveAnalysis() {
     if (block.type === 'position') syncBoard(block.id);
   });
 
+  // --- АВТОМАТИЧЕСКАЯ ОБЛОЖКА ---
+  // Ищем первую доску в разборе
+  let coverImage = null;
+  const firstPos = state.blocks.find(b => b.type === 'position');
+  
+  if (firstPos) {
+    let fenStr = firstPos.fen;
+    // Если FEN пустой (фигуры расставляли вручную), генерируем его из позиции
+    if (!fenStr || !fenStr.includes('/')) {
+      fenStr = posToFEN(firstPos.boardPosition);
+    }
+    
+    if (fenStr) {
+      // Берем только расстановку фигур (до первого пробела)
+      const boardPart = fenStr.split(' ')[0];
+      const color = firstPos.boardOrientation === 'black' ? 'black' : 'white';
+      // Используем генератор картинок Lichess
+      coverImage = `https://lichess1.org/export/fen.gif?fen=${encodeURIComponent(boardPart)}&color=${color}`;
+    }
+  }
+  // ------------------------------
+
   const id  = state.current?.id || generateId();
   const now = new Date().toISOString();
 
@@ -1155,6 +1177,7 @@ async function saveAnalysis() {
     blocks:   state.blocks,
     date:     state.current?.date || now,
     updated:  now,
+    coverImage: coverImage // <-- Сохраняем обложку в объект
   };
 
   console.log('JSON размер:', Math.round(JSON.stringify(analysis).length/1024) + 'кб');
