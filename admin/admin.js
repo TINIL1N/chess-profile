@@ -1,17 +1,18 @@
 // ============================================================
 //  CONFIG
 // ============================================================
+
 const CFG = {
-  apiUrl:     '/api/backend', // Наш единый адрес для всех запросов
+  apiUrl:     '/api/backend',
   sessionKey: 'chess_admin_token',
 };
 
-const TAGS = [
+const TAGS =[
   'Дебют','Миттельшпиль','Эндшпиль',
   'Тактика','Стратегия','Ошибки','Атака','Защита'
 ];
 
-const COLORS = ['#C8A96E','#f87171','#4ade80','#60a5fa','#ffffff'];
+const COLORS =['#C8A96E','#f87171','#4ade80','#60a5fa','#ffffff'];
 
 // ============================================================
 //  STATE
@@ -19,12 +20,13 @@ const COLORS = ['#C8A96E','#f87171','#4ade80','#60a5fa','#ffffff'];
 
 let state = {
   token:        null,
-  analyses:     [],
+  analyses:[],
   current:      null,
   blocks:       [],
-  selectedTags: [],
+  selectedTags:[],
   blockCounter: 0,
   dragSrc:      null,
+  pricingPlans:[] // Состояние для тарифов
 };
 
 const boardState = {};
@@ -41,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
   }
   document.getElementById('pwd-input')
-    .addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    ?.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 });
 
 async function initApp() {
@@ -90,7 +92,7 @@ function doLogout() {
 
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(`screen-${name}`).classList.add('active');
+  document.getElementById(`screen-${name}`)?.classList.add('active');
   document.querySelectorAll('.sidebar__btn').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById(`nav-${name}`);
   if (btn) btn.classList.add('active');
@@ -104,14 +106,16 @@ function showScreen(name) {
 async function loadAnalysesList() {
   try {
     const res = await fetch(CFG.apiUrl + '?action=get_index');
-    if (!res.ok) { state.analyses = []; return; }
+    if (!res.ok) { state.analyses =[]; return; }
     state.analyses = await res.json();
   } catch {
-    state.analyses = [];
+    state.analyses =[];
   }
 }
+
 function renderAnalysesList() {
   const grid = document.getElementById('analyses-grid');
+  if (!grid) return;
 
   if (!state.analyses.length) {
     grid.innerHTML = `
@@ -145,16 +149,18 @@ function renderAnalysesList() {
   }
 
   const sideList = document.getElementById('sidebar-analyses');
-  sideList.innerHTML = state.analyses.length
-    ? state.analyses.map(a => `
-        <div class="analysis-item ${state.current?.id===a.id?'active':''}"
-          onclick="editAnalysis('${a.id}')">
-          <span class="analysis-item__title">${esc(a.title)}</span>
-          <button class="analysis-item__del"
-            onclick="event.stopPropagation();deleteAnalysisById('${a.id}')">✕</button>
-        </div>
-      `).join('')
-    : '<div style="padding:0.75rem 1rem;font-size:0.75rem;color:var(--text-muted)">Пусто</div>';
+  if (sideList) {
+    sideList.innerHTML = state.analyses.length
+      ? state.analyses.map(a => `
+          <div class="analysis-item ${state.current?.id===a.id?'active':''}"
+            onclick="editAnalysis('${a.id}')">
+            <span class="analysis-item__title">${esc(a.title)}</span>
+            <button class="analysis-item__del"
+              onclick="event.stopPropagation();deleteAnalysisById('${a.id}')">✕</button>
+          </div>
+        `).join('')
+      : '<div style="padding:0.75rem 1rem;font-size:0.75rem;color:var(--text-muted)">Пусто</div>';
+  }
 }
 
 // ============================================================
@@ -164,7 +170,7 @@ function renderAnalysesList() {
 function newAnalysis() {
   state.current      = null;
   state.blocks       = [];
-  state.selectedTags = [];
+  state.selectedTags =[];
   state.blockCounter = 0;
 
   document.getElementById('f-title').value   = '';
@@ -180,7 +186,7 @@ function newAnalysis() {
   addBlock('text');
 
   showScreen('editor');
-  document.getElementById('nav-editor').classList.add('active');
+  document.getElementById('nav-editor')?.classList.add('active');
 }
 
 // ============================================================
@@ -189,13 +195,13 @@ function newAnalysis() {
 
 async function editAnalysis(id) {
   try {
-    const res = await fetch(`${CFG.apiUrl}?action=get_analysis&id=${id}`);
+    const res = await fetch(`${CFG.apiUrl}?action=get_analysis&id=${encodeURIComponent(id)}`);
     if (!res.ok) throw new Error();
     const data = await res.json();
 
     state.current      = data;
-    state.blocks       = data.blocks || [];
-    state.selectedTags = data.tags   || [];
+    state.blocks       = data.blocks ||[];
+    state.selectedTags = data.tags   ||[];
     state.blockCounter = state.blocks.length;
 
     document.getElementById('f-title').value   = data.title   || '';
@@ -211,7 +217,7 @@ async function editAnalysis(id) {
         if (block.type === 'position') {
           initBoard(block.id, {
             position:    block.boardPosition    || {},
-            annotations: block.boardAnnotations || [],
+            annotations: block.boardAnnotations ||[],
             orientation: block.boardOrientation || 'white',
             fen:         block.fen              || '',
           });
@@ -220,12 +226,13 @@ async function editAnalysis(id) {
     }, 200);
 
     showScreen('editor');
-    document.getElementById('nav-editor').classList.add('active');
+    document.getElementById('nav-editor')?.classList.add('active');
     renderAnalysesList();
   } catch {
     showStatus('Не удалось загрузить разбор', 'err');
   }
 }
+
 // ============================================================
 //  TAGS
 // ============================================================
@@ -252,6 +259,7 @@ function toggleTag(tag) {
 
 function renderBlocks() {
   const list = document.getElementById('blocks-list');
+  if (!list) return;
   list.innerHTML = '';
   state.blocks.forEach(block => list.appendChild(createBlockEl(block)));
   initDragDrop();
@@ -279,7 +287,6 @@ function createBlockEl(block) {
 }
 
 function renderBlockBody(block) {
-
   if (block.type === 'text') {
     return `
       <textarea
@@ -312,7 +319,8 @@ function renderBlockBody(block) {
         id="color-${bid}-${c.replace('#','')}"
         onclick="setBoardColor('${bid}','${c}')"></div>
     `).join('');
-  
+
+    // ТОНКИЕ СТРЕЛКИ ТУТ (markerWidth="5", markerHeight="5")
     const markerDefs = COLORS.map(c => `
       <marker id="m-${c.replace('#','')}-${bid}"
         markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
@@ -323,18 +331,12 @@ function renderBlockBody(block) {
     return `
       <div class="position-wrap">
         <div class="board-outer">
-
-          <!-- РЕЖИМЫ -->
           <div class="mode-tabs">
-            <div class="mode-tab active" id="mtab-fen-${bid}"
-              onclick="setBoardMode('${bid}','fen')">📋 FEN</div>
-            <div class="mode-tab" id="mtab-edit-${bid}"
-              onclick="setBoardMode('${bid}','edit')">✋ Расстановка</div>
-            <div class="mode-tab" id="mtab-draw-${bid}"
-              onclick="setBoardMode('${bid}','draw')">✏️ Рисование</div>
+            <div class="mode-tab active" id="mtab-fen-${bid}" onclick="setBoardMode('${bid}','fen')">📋 FEN</div>
+            <div class="mode-tab" id="mtab-edit-${bid}" onclick="setBoardMode('${bid}','edit')">✋ Расстановка</div>
+            <div class="mode-tab" id="mtab-draw-${bid}" onclick="setBoardMode('${bid}','draw')">✏️ Рисование</div>
           </div>
 
-          <!-- ПАНЕЛЬ FEN -->
           <div id="panel-fen-${bid}" class="tool-group" style="margin-bottom:0.5rem">
             <div class="tool-group__label">Вставь FEN из Lichess / Chess.com</div>
             <input type="text" class="fen-input" id="fen-input-${bid}"
@@ -348,137 +350,79 @@ function renderBlockBody(block) {
             </div>
           </div>
 
-          <!-- ПАНЕЛЬ РАССТАНОВКИ -->
-          <div id="panel-edit-${bid}" class="tool-group"
-            style="display:none;margin-bottom:0.5rem">
-
+          <div id="panel-edit-${bid}" class="tool-group" style="display:none;margin-bottom:0.5rem">
             <div class="tool-group__label">Выбери фигуру → кликни на клетку</div>
-
-            <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:0.3rem;
-                        text-transform:uppercase;letter-spacing:0.06em">Белые</div>
+            <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:0.3rem;">Белые</div>
             <div class="pieces-panel" style="margin-bottom:0.6rem">
-              <div class="piece-btn active" id="pb-wK-${bid}"
-                onclick="selectPiece('${bid}','wK')" title="Король">♔</div>
-              <div class="piece-btn" id="pb-wQ-${bid}"
-                onclick="selectPiece('${bid}','wQ')" title="Ферзь">♕</div>
-              <div class="piece-btn" id="pb-wR-${bid}"
-                onclick="selectPiece('${bid}','wR')" title="Ладья">♖</div>
-              <div class="piece-btn" id="pb-wB-${bid}"
-                onclick="selectPiece('${bid}','wB')" title="Слон">♗</div>
-              <div class="piece-btn" id="pb-wN-${bid}"
-                onclick="selectPiece('${bid}','wN')" title="Конь">♘</div>
-              <div class="piece-btn" id="pb-wP-${bid}"
-                onclick="selectPiece('${bid}','wP')" title="Пешка">♙</div>
+              <div class="piece-btn active" id="pb-wK-${bid}" onclick="selectPiece('${bid}','wK')">♔</div>
+              <div class="piece-btn" id="pb-wQ-${bid}" onclick="selectPiece('${bid}','wQ')">♕</div>
+              <div class="piece-btn" id="pb-wR-${bid}" onclick="selectPiece('${bid}','wR')">♖</div>
+              <div class="piece-btn" id="pb-wB-${bid}" onclick="selectPiece('${bid}','wB')">♗</div>
+              <div class="piece-btn" id="pb-wN-${bid}" onclick="selectPiece('${bid}','wN')">♘</div>
+              <div class="piece-btn" id="pb-wP-${bid}" onclick="selectPiece('${bid}','wP')">♙</div>
             </div>
-
-            <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:0.3rem;
-                        text-transform:uppercase;letter-spacing:0.06em">Чёрные</div>
+            <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:0.3rem;">Чёрные</div>
             <div class="pieces-panel" style="margin-bottom:0.6rem">
-              <div class="piece-btn" id="pb-bK-${bid}"
-                onclick="selectPiece('${bid}','bK')" title="Король">♚</div>
-              <div class="piece-btn" id="pb-bQ-${bid}"
-                onclick="selectPiece('${bid}','bQ')" title="Ферзь">♛</div>
-              <div class="piece-btn" id="pb-bR-${bid}"
-                onclick="selectPiece('${bid}','bR')" title="Ладья">♜</div>
-              <div class="piece-btn" id="pb-bB-${bid}"
-                onclick="selectPiece('${bid}','bB')" title="Слон">♝</div>
-              <div class="piece-btn" id="pb-bN-${bid}"
-                onclick="selectPiece('${bid}','bN')" title="Конь">♞</div>
-              <div class="piece-btn" id="pb-bP-${bid}"
-                onclick="selectPiece('${bid}','bP')" title="Пешка">♟</div>
+              <div class="piece-btn" id="pb-bK-${bid}" onclick="selectPiece('${bid}','bK')">♚</div>
+              <div class="piece-btn" id="pb-bQ-${bid}" onclick="selectPiece('${bid}','bQ')">♛</div>
+              <div class="piece-btn" id="pb-bR-${bid}" onclick="selectPiece('${bid}','bR')">♜</div>
+              <div class="piece-btn" id="pb-bB-${bid}" onclick="selectPiece('${bid}','bB')">♝</div>
+              <div class="piece-btn" id="pb-bN-${bid}" onclick="selectPiece('${bid}','bN')">♞</div>
+              <div class="piece-btn" id="pb-bP-${bid}" onclick="selectPiece('${bid}','bP')">♟</div>
             </div>
-
-            <div class="piece-btn erase-btn" id="pb-clear-${bid}"
-              onclick="selectPiece('${bid}','clear')">
-              ✕ Стереть фигуру
-            </div>
+            <div class="piece-btn erase-btn" id="pb-clear-${bid}" onclick="selectPiece('${bid}','clear')">✕ Стереть фигуру</div>
           </div>
 
-          <!-- ПАНЕЛЬ РИСОВАНИЯ -->
-          <div id="panel-draw-${bid}" class="tool-group"
-            style="display:none;margin-bottom:0.5rem">
+          <div id="panel-draw-${bid}" class="tool-group" style="display:none;margin-bottom:0.5rem">
             <div class="tool-group__label">Инструмент</div>
             <div class="tool-btns" style="margin-bottom:0.6rem">
-              <button class="tool-btn active" id="dtool-arrow-${bid}"
-                onclick="setBoardTool('${bid}','arrow')">→ Стрелка</button>
-              <button class="tool-btn" id="dtool-highlight-${bid}"
-                onclick="setBoardTool('${bid}','highlight')">■ Клетка</button>
-              <button class="tool-btn" id="dtool-circle-${bid}"
-                onclick="setBoardTool('${bid}','circle')">○ Круг</button>
+              <button class="tool-btn active" id="dtool-arrow-${bid}" onclick="setBoardTool('${bid}','arrow')">→ Стрелка</button>
+              <button class="tool-btn" id="dtool-highlight-${bid}" onclick="setBoardTool('${bid}','highlight')">■ Клетка</button>
+              <button class="tool-btn" id="dtool-circle-${bid}" onclick="setBoardTool('${bid}','circle')">○ Круг</button>
             </div>
             <div class="tool-group__label">Цвет</div>
             <div class="color-btns" style="margin-bottom:0.6rem">${colorBtns}</div>
             <div class="tool-btns">
-              <button class="tool-btn"
-                onclick="boardUndoAnnotation('${bid}')">↩ Отмена</button>
-              <button class="tool-btn"
-                onclick="boardClearAnnotations('${bid}')">🗑 Очистить</button>
+              <button class="tool-btn" onclick="boardUndoAnnotation('${bid}')">↩ Отмена</button>
+              <button class="tool-btn" onclick="boardClearAnnotations('${bid}')">🗑 Очистить</button>
             </div>
           </div>
 
-          <!-- ДОСКА + SVG -->
-          <div class="board-container" id="board-container-${bid}"
-            style="position:relative;user-select:none">
+          <div class="board-container" id="board-container-${bid}" style="position:relative;user-select:none">
             <div id="board-${bid}" style="width:100%"></div>
-            <svg class="arrows-svg" id="board-svg-${bid}"
-              viewBox="0 0 480 480"
-              xmlns="http://www.w3.org/2000/svg"
-              style="position:absolute;top:0;left:0;width:100%;height:100%;
-                     pointer-events:none;z-index:10">
+            <svg class="arrows-svg" id="board-svg-${bid}" viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10">
               <defs>${markerDefs}</defs>
               <g id="svg-highlights-${bid}"></g>
               <g id="svg-arrows-${bid}"></g>
               <g id="svg-circles-${bid}"></g>
             </svg>
           </div>
-
         </div>
 
-        <!-- ПРАВАЯ ПАНЕЛЬ -->
         <div class="canvas-tools">
           <div class="tool-group">
             <div class="tool-group__label">Подпись хода</div>
             <input type="text"
-              style="width:100%;background:var(--bg);border:1px solid var(--border);
-                     border-radius:4px;padding:0.5rem 0.7rem;color:var(--text);
-                     font-size:0.82rem;outline:none;font-family:inherit;"
+              style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:0.5rem 0.7rem;color:var(--text);font-size:0.82rem;outline:none;"
               placeholder="Например: 20.Фxh7+"
               value="${esc(block.caption||'')}"
               oninput="updateBlockData('${block.id}','caption',this.value)"
             />
           </div>
-
           <div class="tool-group">
             <div style="display:flex;align-items:center;gap:0.5rem">
-              <input type="checkbox" id="key-${bid}"
-                ${block.isKey?'checked':''}
-                onchange="updateBlockData('${bid}','isKey',this.checked)"
-                style="accent-color:var(--accent);width:14px;height:14px"
-              />
-              <label for="key-${bid}"
-                style="font-size:0.78rem;color:var(--text-sec);cursor:pointer">
-                ⭐ Ключевой момент
-              </label>
+              <input type="checkbox" id="key-${bid}" ${block.isKey?'checked':''} onchange="updateBlockData('${bid}','isKey',this.checked)" style="accent-color:var(--accent);width:14px;height:14px" />
+              <label for="key-${bid}" style="font-size:0.78rem;color:var(--text-sec);cursor:pointer">⭐ Ключевой момент</label>
             </div>
           </div>
-
           <div class="tool-group">
-            <div class="tool-group__label">Текущий FEN
-              <span style="font-size:0.6rem;color:var(--text-muted)">
-                (нажми чтобы скопировать)
-              </span>
-            </div>
-            <div id="fen-display-${bid}"
-              onclick="copyFEN('${bid}')"
-              style="font-size:0.65rem;color:var(--text-muted);word-break:break-all;
-                     line-height:1.5;font-family:monospace;cursor:pointer;
-                     padding:0.4rem;background:var(--bg);border-radius:2px">—</div>
+            <div class="tool-group__label">Текущий FEN</div>
+            <div id="fen-display-${bid}" onclick="copyFEN('${bid}')" style="font-size:0.65rem;color:var(--text-muted);word-break:break-all;line-height:1.5;font-family:monospace;cursor:pointer;padding:0.4rem;background:var(--bg);border-radius:2px">—</div>
           </div>
         </div>
       </div>
     `;
   }
-
   return '';
 }
 
@@ -490,12 +434,8 @@ function addBlock(type) {
   const id = `b_${Date.now()}_${state.blockCounter++}`;
   const block = {
     id, type,
-    text: '', caption: '',
-    isKey: false,
-    fen: '',
-    boardPosition:    {},
-    boardAnnotations: [],
-    boardOrientation: 'white',
+    text: '', caption: '', isKey: false, fen: '',
+    boardPosition: {}, boardAnnotations:[], boardOrientation: 'white',
   };
 
   state.blocks.push(block);
@@ -506,11 +446,8 @@ function addBlock(type) {
   initDragDrop();
 
   if (type === 'position') {
-    setTimeout(() => initBoard(id, {
-      position: {}, annotations: [], orientation: 'white', fen: '',
-    }), 150);
+    setTimeout(() => initBoard(id, { position: {}, annotations:[], orientation: 'white', fen: '' }), 150);
   }
-
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -528,10 +465,6 @@ function updateBlockData(id, key, value) {
   const block = state.blocks.find(b => b.id === id);
   if (block) block[key] = value;
 }
-
-// ============================================================
-//  DRAG & DROP BLOCKS
-// ============================================================
 
 function initDragDrop() {
   document.querySelectorAll('.block').forEach(block => {
@@ -556,7 +489,7 @@ function initDragDrop() {
       block.style.borderColor = '';
       if (!state.dragSrc || block === state.dragSrc) return;
       const list = document.getElementById('blocks-list');
-      const all  = [...list.querySelectorAll('.block')];
+      const all  =[...list.querySelectorAll('.block')];
       if (all.indexOf(state.dragSrc) < all.indexOf(block)) block.after(state.dragSrc);
       else block.before(state.dragSrc);
     });
@@ -564,82 +497,49 @@ function initDragDrop() {
 }
 
 // ============================================================
-//  BOARD — INIT
+//  BOARD — INIT & EVENTS
 // ============================================================
 
 function initBoard(blockId, savedData) {
   const el = document.getElementById(`board-${blockId}`);
-  if (!el) {
-    setTimeout(() => initBoard(blockId, savedData), 100);
-    return;
-  }
+  if (!el) { setTimeout(() => initBoard(blockId, savedData), 100); return; }
 
-  // Уничтожаем старую доску
   if (boardState[blockId]?.board) {
     try { boardState[blockId].board.destroy(); } catch {}
   }
-
   el.innerHTML = '';
 
   const pos         = savedData.position    || {};
-  const annotations = savedData.annotations || [];
+  const annotations = savedData.annotations ||[];
   const orientation = savedData.orientation || 'white';
   const fen         = savedData.fen         || '';
 
   boardState[blockId] = {
-    board:         null,
-    position:      pos,
-    annotations:   [...annotations],
-    mode:          'fen',
-    tool:          'arrow',
-    color:         '#C8A96E',
-    selectedPiece: 'wK',
-    orientation,
+    board: null, position: pos, annotations:[...annotations],
+    mode: 'fen', tool: 'arrow', color: '#C8A96E', selectedPiece: 'wK', orientation,
   };
 
-  let startPos = 'start';
-  if (fen) {
-    startPos = fen.split(' ')[0];
-  } else if (Object.keys(pos).length > 0) {
-    startPos = pos;
-  }
+  let startPos = fen ? fen.split(' ')[0] : (Object.keys(pos).length > 0 ? pos : 'start');
 
   boardState[blockId].board = Chessboard(`board-${blockId}`, {
-    position:    startPos,
-    orientation,
-    pieceTheme:  '/img/chesspieces/wikipedia/{piece}.png',
-    draggable:   false,
+    position: startPos, orientation, pieceTheme: '/img/chesspieces/wikipedia/{piece}.png', draggable: false,
   });
-
   boardState[blockId].position = boardState[blockId].board.position();
 
-  // Запрещаем drag картинок
   disableBoardDrag(blockId);
 
-  if (fen) {
-    const inp = document.getElementById(`fen-input-${blockId}`);
-    if (inp) inp.value = fen;
-  }
-
-  // FEN input listener
   const fenInp = document.getElementById(`fen-input-${blockId}`);
   if (fenInp) {
+    fenInp.value = fen;
     fenInp.addEventListener('input', () => applyFEN(blockId, fenInp.value));
   }
 
   updateFENDisplay(blockId);
   initBoardEvents(blockId);
 
-  if (annotations.length > 0) {
-    setTimeout(() => redrawBoardAnnotations(blockId), 200);
-  }
-
+  if (annotations.length > 0) setTimeout(() => redrawBoardAnnotations(blockId), 200);
   syncBoard(blockId);
 }
-
-// ============================================================
-//  DISABLE BOARD IMAGE DRAG
-// ============================================================
 
 function disableBoardDrag(blockId) {
   setTimeout(() => {
@@ -655,63 +555,45 @@ function disableBoardDrag(blockId) {
   }, 200);
 }
 
-// ============================================================
-//  BOARD — EVENTS
-// ============================================================
-
+// ФИКС ДЛЯ ИСЧЕЗАЮЩЕЙ ДОСКИ
 function initBoardEvents(blockId) {
   const svg = document.getElementById(`board-svg-${blockId}`);
   const container = document.getElementById(`board-container-${blockId}`);
   if (!svg || !container) return;
 
-  // СОХРАНЯЕМ ссылку на доску ДО того, как она исчезнет из документа
   const boardEl = document.getElementById(`board-${blockId}`);
-
-  // Удаляем старые обработчики через клонирование SVG
   const newSvg = svg.cloneNode(true);
   svg.parentNode.replaceChild(newSvg, svg);
 
-  // SVG события для рисования
   newSvg.addEventListener('mousedown', e => {
     const bs = boardState[blockId];
     if (!bs || bs.mode !== 'draw') return;
     e.preventDefault();
-
     const sq = getSquareFromPoint(e.clientX, e.clientY, blockId);
     if (!sq) return;
-
-    if (bs.tool === 'highlight') {
-      toggleHighlight(blockId, sq);
-    } else {
-      _drawStarts[blockId] = sq;
-    }
+    if (bs.tool === 'highlight') toggleHighlight(blockId, sq);
+    else _drawStarts[blockId] = sq;
   });
 
   newSvg.addEventListener('mouseup', e => {
-    const bs     = boardState[blockId];
+    const bs = boardState[blockId];
     const fromSq = _drawStarts[blockId];
     if (!bs || bs.mode !== 'draw' || !fromSq) return;
-
     _drawStarts[blockId] = null;
     const sq = getSquareFromPoint(e.clientX, e.clientY, blockId);
     if (!sq) return;
 
     if (bs.tool === 'arrow' && sq !== fromSq) {
       bs.annotations.push({ type:'arrow', from:fromSq, to:sq, color:bs.color });
-      redrawBoardAnnotations(blockId);
-      syncBoard(blockId);
+      redrawBoardAnnotations(blockId); syncBoard(blockId);
     } else if (bs.tool === 'circle') {
       bs.annotations.push({ type:'circle', square:fromSq, color:bs.color });
-      redrawBoardAnnotations(blockId);
-      syncBoard(blockId);
+      redrawBoardAnnotations(blockId); syncBoard(blockId);
     }
   });
 
-  // Клики для расстановки — на контейнере
   const newContainer = container.cloneNode(false);
   container.parentNode.replaceChild(newContainer, container);
-  
-  // Добавляем уже сохраненный boardEl обратно
   if (boardEl) newContainer.appendChild(boardEl);
   newContainer.appendChild(newSvg);
 
@@ -724,247 +606,155 @@ function initBoardEvents(blockId) {
   });
 }
 
-// ============================================================
-//  GET SQUARE FROM COORDINATES
-// ============================================================
-
 function getSquareFromPoint(clientX, clientY, blockId) {
   const boardEl = document.getElementById(`board-${blockId}`);
   if (!boardEl) return null;
-
-  // Используем внутренний table доски для точного rect
-  const inner = boardEl.querySelector('table') ||
-                boardEl.querySelector('.board-b72b1') ||
-                boardEl;
+  const inner = boardEl.querySelector('table') || boardEl.querySelector('.board-b72b1') || boardEl;
   const rect  = inner.getBoundingClientRect();
-
-  const x = clientX - rect.left;
-  const y = clientY - rect.top;
-
+  const x = clientX - rect.left; const y = clientY - rect.top;
   if (x < 0 || y < 0 || x > rect.width || y > rect.height) return null;
 
-  const bs      = boardState[blockId];
+  const bs = boardState[blockId];
   const flipped = bs?.orientation === 'black';
-
-  let col = Math.max(0, Math.min(7, Math.floor(x / (rect.width  / 8))));
+  let col = Math.max(0, Math.min(7, Math.floor(x / (rect.width / 8))));
   let row = Math.max(0, Math.min(7, Math.floor(y / (rect.height / 8))));
-
   if (flipped) { col = 7-col; row = 7-row; }
-
-  const files = ['a','b','c','d','e','f','g','h'];
-  const ranks = ['8','7','6','5','4','3','2','1'];
-
+  const files =['a','b','c','d','e','f','g','h'];
+  const ranks =['8','7','6','5','4','3','2','1'];
   return files[col] + ranks[row];
 }
-
-// ============================================================
-//  BOARD — EDIT MODE
-// ============================================================
 
 function placeOrRemovePiece(blockId, square) {
   const bs = boardState[blockId];
   if (!bs?.board) return;
-
   const pos = { ...bs.board.position() };
-
-  if (bs.selectedPiece === 'clear') {
-    delete pos[square];
-  } else {
-    pos[square] = bs.selectedPiece;
-  }
-
+  if (bs.selectedPiece === 'clear') delete pos[square];
+  else pos[square] = bs.selectedPiece;
   bs.board.position(pos, false);
   bs.position = { ...pos };
   updateFENDisplay(blockId);
   syncBoard(blockId);
-
-  // Запрещаем drag снова после обновления
   disableBoardDrag(blockId);
 }
-
-// ============================================================
-//  BOARD — DRAW MODE
-// ============================================================
 
 function toggleHighlight(blockId, square) {
   const bs = boardState[blockId];
   if (!bs) return;
-
-  const idx = bs.annotations.findIndex(
-    a => a.type === 'highlight' && a.square === square
-  );
-
+  const idx = bs.annotations.findIndex(a => a.type === 'highlight' && a.square === square);
   if (idx !== -1) bs.annotations.splice(idx, 1);
   else bs.annotations.push({ type:'highlight', square, color:bs.color });
-
-  redrawBoardAnnotations(blockId);
-  syncBoard(blockId);
+  redrawBoardAnnotations(blockId); syncBoard(blockId);
 }
 
-// ============================================================
-//  BOARD — SVG ANNOTATIONS
-// ============================================================
-
 function sqToXY(square, blockId) {
-  const bs      = boardState[blockId];
+  const bs = boardState[blockId];
   const flipped = bs?.orientation === 'black';
-  const files   = ['a','b','c','d','e','f','g','h'];
-  const col     = files.indexOf(square[0]);
-  const row     = 8 - parseInt(square[1]);
-  const c       = flipped ? 7-col : col;
-  const r       = flipped ? 7-row : row;
-  const cell    = 60;
-
-  return {
-    x:    c * cell + cell / 2,
-    y:    r * cell + cell / 2,
-    cx:   c * cell,
-    cy:   r * cell,
-    cell,
-  };
+  const col =['a','b','c','d','e','f','g','h'].indexOf(square[0]);
+  const row = 8 - parseInt(square[1]);
+  const c = flipped ? 7-col : col;
+  const r = flipped ? 7-row : row;
+  const cell = 60;
+  return { x: c*cell + cell/2, y: r*cell + cell/2, cx: c*cell, cy: r*cell, cell };
 }
 
 function redrawBoardAnnotations(blockId) {
   const bs = boardState[blockId];
   if (!bs) return;
-
   const gH = document.getElementById(`svg-highlights-${blockId}`);
   const gA = document.getElementById(`svg-arrows-${blockId}`);
   const gC = document.getElementById(`svg-circles-${blockId}`);
   if (!gH || !gA || !gC) return;
-
-  gH.innerHTML = '';
-  gA.innerHTML = '';
-  gC.innerHTML = '';
+  gH.innerHTML = ''; gA.innerHTML = ''; gC.innerHTML = '';
 
   bs.annotations.forEach(ann => {
-
     if (ann.type === 'highlight') {
-      const p    = sqToXY(ann.square, blockId);
+      const p = sqToXY(ann.square, blockId);
       const rect = mkSVGEl('rect');
-      rect.setAttribute('x',       p.cx);
-      rect.setAttribute('y',       p.cy);
-      rect.setAttribute('width',   p.cell);
-      rect.setAttribute('height',  p.cell);
-      rect.setAttribute('fill',    ann.color || '#C8A96E');
+      rect.setAttribute('x', p.cx); rect.setAttribute('y', p.cy);
+      rect.setAttribute('width', p.cell); rect.setAttribute('height', p.cell);
+      rect.setAttribute('fill', ann.color || '#C8A96E');
       rect.setAttribute('opacity', '0.65');
       gH.appendChild(rect);
     }
-
     if (ann.type === 'arrow') {
-      const from  = sqToXY(ann.from, blockId);
-      const to    = sqToXY(ann.to,   blockId);
-      const color = ann.color || '#C8A96E';
-      const mid   = color.replace('#','');
-
-      const dx  = to.x - from.x;
-      const dy  = to.y - from.y;
+      const from = sqToXY(ann.from, blockId); const to = sqToXY(ann.to, blockId);
+      const color = ann.color || '#C8A96E'; const mid = color.replace('#','');
+      const dx = to.x - from.x; const dy = to.y - from.y;
       const len = Math.hypot(dx, dy);
       if (len < 1) return;
-
       const line = mkSVGEl('line');
-      line.setAttribute('x1', from.x);
-      line.setAttribute('y1', from.y);
+      line.setAttribute('x1', from.x); line.setAttribute('y1', from.y);
+      // ТОНКИЕ СТРЕЛКИ
       line.setAttribute('x2', to.x - (dx/len) * 20);
       line.setAttribute('y2', to.y - (dy/len) * 20);
-      line.setAttribute('stroke',         color);
-      line.setAttribute('stroke-width',   '7');
+      line.setAttribute('stroke', color);
+      line.setAttribute('stroke-width', '7');
       line.setAttribute('stroke-linecap', 'round');
-      line.setAttribute('opacity',        '0.9');
-      line.setAttribute('marker-end',     `url(#m-${mid}-${blockId})`);
+      line.setAttribute('opacity', '0.9');
+      line.setAttribute('marker-end', `url(#m-${mid}-${blockId})`);
       gA.appendChild(line);
     }
-
     if (ann.type === 'circle') {
-      const p      = sqToXY(ann.square, blockId);
+      const p = sqToXY(ann.square, blockId);
       const circle = mkSVGEl('circle');
-      circle.setAttribute('cx',           p.x);
-      circle.setAttribute('cy',           p.y);
-      circle.setAttribute('r',            p.cell/2 - 4);
-      circle.setAttribute('fill',         'none');
-      circle.setAttribute('stroke',       ann.color || '#C8A96E');
+      circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y);
+      circle.setAttribute('r', p.cell/2 - 4);
+      circle.setAttribute('fill', 'none');
+      circle.setAttribute('stroke', ann.color || '#C8A96E');
       circle.setAttribute('stroke-width', '8');
-      circle.setAttribute('opacity',      '0.9');
+      circle.setAttribute('opacity', '0.9');
       gC.appendChild(circle);
     }
   });
 }
 
-function mkSVGEl(tag) {
-  return document.createElementNS('http://www.w3.org/2000/svg', tag);
-}
-
-// ============================================================
-//  BOARD — MODE / TOOL / COLOR
-// ============================================================
+function mkSVGEl(tag) { return document.createElementNS('http://www.w3.org/2000/svg', tag); }
 
 function setBoardMode(blockId, mode) {
   const bs = boardState[blockId];
   if (!bs) return;
-
   bs.mode = mode;
 
-  // Табы
   ['fen','edit','draw'].forEach(m => {
-    document.getElementById(`mtab-${m}-${blockId}`)
-      ?.classList.toggle('active', m === mode);
+    document.getElementById(`mtab-${m}-${blockId}`)?.classList.toggle('active', m === mode);
     const panel = document.getElementById(`panel-${m}-${blockId}`);
     if (panel) panel.style.display = m === mode ? 'block' : 'none';
   });
 
-  // SVG pointer-events
   const svg = document.getElementById(`board-svg-${blockId}`);
   if (svg) svg.style.pointerEvents = mode === 'draw' ? 'all' : 'none';
 
- // Пересоздаём доску
   const pos = bs.board ? { ...bs.board.position() } : { ...bs.position };
-
-  if (bs.board) {
-    try { bs.board.destroy(); } catch {}
-    bs.board = null;
-  }
+  if (bs.board) { try { bs.board.destroy(); } catch {} bs.board = null; }
 
   const boardEl = document.getElementById(`board-${blockId}`);
-  
-  // Создаем Chessboard ТОЛЬКО если контейнер реально существует
   if (boardEl) {
     boardEl.innerHTML = '';
-    
-    // Передаем напрямую DOM-ноду, это защищает от багов селектора jQuery внутри chessboard.js
     bs.board = Chessboard(boardEl, {
-      position:     Object.keys(pos).length > 0 ? pos : 'start',
-      orientation:  bs.orientation,
-      pieceTheme:   '/img/chesspieces/wikipedia/{piece}.png',
-      draggable:    mode === 'edit',
+      position: Object.keys(pos).length > 0 ? pos : 'start',
+      orientation: bs.orientation,
+      pieceTheme: '/img/chesspieces/wikipedia/{piece}.png',
+      draggable: mode === 'edit',
       dropOffBoard: 'trash',
       onDrop: (src, tgt) => {
         if (tgt === 'offboard') {
           setTimeout(() => {
             if (bs.board) bs.position = { ...bs.board.position() };
-            updateFENDisplay(blockId);
-            syncBoard(blockId);
+            updateFENDisplay(blockId); syncBoard(blockId);
           }, 50);
         }
       },
       onSnapEnd: () => {
         if (bs.board) bs.position = { ...bs.board.position() };
-        updateFENDisplay(blockId);
-        syncBoard(blockId);
+        updateFENDisplay(blockId); syncBoard(blockId);
         disableBoardDrag(blockId);
       },
     });
-
-    if (bs.board) {
-      bs.position = { ...bs.board.position() };
-    }
+    if (bs.board) bs.position = { ...bs.board.position() };
   }
 
   disableBoardDrag(blockId);
-
-  setTimeout(() => {
-    redrawBoardAnnotations(blockId);
-    initBoardEvents(blockId);
-  }, 150);
+  setTimeout(() => { redrawBoardAnnotations(blockId); initBoardEvents(blockId); }, 150);
 }
 
 function setBoardTool(blockId, tool) {
@@ -972,8 +762,7 @@ function setBoardTool(blockId, tool) {
   if (!bs) return;
   bs.tool = tool;
   ['arrow','highlight','circle'].forEach(t => {
-    document.getElementById(`dtool-${t}-${blockId}`)
-      ?.classList.toggle('active', t === tool);
+    document.getElementById(`dtool-${t}-${blockId}`)?.classList.toggle('active', t === tool);
   });
 }
 
@@ -981,76 +770,53 @@ function setBoardColor(blockId, color) {
   const bs = boardState[blockId];
   if (!bs) return;
   bs.color = color;
-  document.querySelectorAll(`[id^="color-${blockId}-"]`)
-    .forEach(b => b.classList.remove('active'));
-  document.getElementById(`color-${blockId}-${color.replace('#','')}`)
-    ?.classList.add('active');
+  document.querySelectorAll(`[id^="color-${blockId}-"]`).forEach(b => b.classList.remove('active'));
+  document.getElementById(`color-${blockId}-${color.replace('#','')}`)?.classList.add('active');
 }
 
 function selectPiece(blockId, piece) {
   const bs = boardState[blockId];
   if (!bs) return;
   bs.selectedPiece = piece;
-  document.querySelectorAll(`[id^="pb-"][id$="-${blockId}"]`)
-    .forEach(el => el.classList.remove('active'));
-  document.getElementById(`pb-${piece}-${blockId}`)
-    ?.classList.add('active');
+  document.querySelectorAll(`[id^="pb-"][id$="-${blockId}"]`).forEach(el => el.classList.remove('active'));
+  document.getElementById(`pb-${piece}-${blockId}`)?.classList.add('active');
 }
 
-// ============================================================
-//  BOARD — FEN
-// ============================================================
-
 function applyFEN(blockId, fen) {
-  const bs  = boardState[blockId];
+  const bs = boardState[blockId];
   const inp = document.getElementById(`fen-input-${blockId}`);
   if (!bs?.board || !fen.trim()) return;
-
   const part = fen.trim().split(' ')[0];
-  if (!part.includes('/')) {
-    inp?.classList.add('fen-error');
-    return;
-  }
-
+  if (!part.includes('/')) { inp?.classList.add('fen-error'); return; }
   try {
     bs.board.position(part, false);
     bs.position = { ...bs.board.position() };
     updateBlockData(blockId, 'fen', fen.trim());
-    updateFENDisplay(blockId);
-    syncBoard(blockId);
-    disableBoardDrag(blockId);
-    inp?.classList.remove('fen-error');
-    inp?.classList.add('fen-ok');
+    updateFENDisplay(blockId); syncBoard(blockId); disableBoardDrag(blockId);
+    inp?.classList.remove('fen-error'); inp?.classList.add('fen-ok');
     setTimeout(() => inp?.classList.remove('fen-ok'), 800);
-  } catch {
-    inp?.classList.add('fen-error');
-  }
+  } catch { inp?.classList.add('fen-error'); }
 }
 
 function boardSetStart(blockId) {
-  const bs  = boardState[blockId];
+  const bs = boardState[blockId];
   const inp = document.getElementById(`fen-input-${blockId}`);
   if (!bs?.board) return;
-  bs.board.start(false);
-  bs.position = { ...bs.board.position() };
+  bs.board.start(false); bs.position = { ...bs.board.position() };
   const fenStr = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
   if (inp) inp.value = fenStr;
   updateBlockData(blockId, 'fen', fenStr);
-  updateFENDisplay(blockId);
-  syncBoard(blockId);
-  disableBoardDrag(blockId);
+  updateFENDisplay(blockId); syncBoard(blockId); disableBoardDrag(blockId);
 }
 
 function boardClear(blockId) {
-  const bs  = boardState[blockId];
+  const bs = boardState[blockId];
   const inp = document.getElementById(`fen-input-${blockId}`);
   if (!bs?.board) return;
-  bs.board.clear(false);
-  bs.position = {};
+  bs.board.clear(false); bs.position = {};
   if (inp) inp.value = '';
   updateBlockData(blockId, 'fen', '');
-  updateFENDisplay(blockId);
-  syncBoard(blockId);
+  updateFENDisplay(blockId); syncBoard(blockId);
 }
 
 function boardFlip(blockId) {
@@ -1066,71 +832,54 @@ function updateFENDisplay(blockId) {
   const bs = boardState[blockId];
   if (!bs?.board) return;
   const fen = posToFEN(bs.board.position());
-  const el  = document.getElementById(`fen-display-${blockId}`);
+  const el = document.getElementById(`fen-display-${blockId}`);
   if (el) el.textContent = fen || '—';
 }
 
 function copyFEN(blockId) {
   const el = document.getElementById(`fen-display-${blockId}`);
   if (!el || el.textContent === '—') return;
-  navigator.clipboard.writeText(el.textContent)
-    .then(() => showStatus('FEN скопирован', 'ok'));
+  navigator.clipboard.writeText(el.textContent).then(() => showStatus('FEN скопирован', 'ok'));
 }
 
 function posToFEN(pos) {
   const files = ['a','b','c','d','e','f','g','h'];
   const ranks = ['8','7','6','5','4','3','2','1'];
-  const map   = {
-    wK:'K',wQ:'Q',wR:'R',wB:'B',wN:'N',wP:'P',
-    bK:'k',bQ:'q',bR:'r',bB:'b',bN:'n',bP:'p',
-  };
+  const map = { wK:'K',wQ:'Q',wR:'R',wB:'B',wN:'N',wP:'P', bK:'k',bQ:'q',bR:'r',bB:'b',bN:'n',bP:'p' };
   return ranks.map(rank => {
     let empty = 0, row = '';
     files.forEach(file => {
       const p = pos[file+rank];
       if (p) { if (empty) { row+=empty; empty=0; } row+=map[p]||'?'; }
-      else   { empty++; }
+      else { empty++; }
     });
-    if (empty) row += empty;
-    return row;
+    if (empty) row += empty; return row;
   }).join('/');
 }
-
-// ============================================================
-//  BOARD — ANNOTATIONS UNDO/CLEAR
-// ============================================================
 
 function boardUndoAnnotation(blockId) {
   const bs = boardState[blockId];
   if (!bs || !bs.annotations.length) return;
-  bs.annotations.pop();
-  redrawBoardAnnotations(blockId);
-  syncBoard(blockId);
+  bs.annotations.pop(); redrawBoardAnnotations(blockId); syncBoard(blockId);
 }
 
 function boardClearAnnotations(blockId) {
   if (!confirm('Очистить все аннотации?')) return;
   const bs = boardState[blockId];
   if (!bs) return;
-  bs.annotations = [];
-  redrawBoardAnnotations(blockId);
-  syncBoard(blockId);
+  bs.annotations =[]; redrawBoardAnnotations(blockId); syncBoard(blockId);
 }
-
-// ============================================================
-//  BOARD — SYNC
-// ============================================================
 
 function syncBoard(blockId) {
   const bs = boardState[blockId];
   if (!bs) return;
-  updateBlockData(blockId, 'boardPosition',    bs.position);
+  updateBlockData(blockId, 'boardPosition', bs.position);
   updateBlockData(blockId, 'boardAnnotations', bs.annotations);
   updateBlockData(blockId, 'boardOrientation', bs.orientation);
 }
 
 // ============================================================
-//  SAVE ANALYSIS
+//  SAVE ANALYSIS (С ГЕНЕРАЦИЕЙ ОБЛОЖКИ)
 // ============================================================
 
 async function saveAnalysis() {
@@ -1145,27 +894,18 @@ async function saveAnalysis() {
     if (block.type === 'position') syncBoard(block.id);
   });
 
-  // --- АВТОМАТИЧЕСКАЯ ОБЛОЖКА ---
-  // Ищем первую доску в разборе
+  // Ищем первую доску для обложки
   let coverImage = null;
   const firstPos = state.blocks.find(b => b.type === 'position');
-  
   if (firstPos) {
     let fenStr = firstPos.fen;
-    // Если FEN пустой (фигуры расставляли вручную), генерируем его из позиции
-    if (!fenStr || !fenStr.includes('/')) {
-      fenStr = posToFEN(firstPos.boardPosition);
-    }
-    
+    if (!fenStr || !fenStr.includes('/')) fenStr = posToFEN(firstPos.boardPosition);
     if (fenStr) {
-      // Берем только расстановку фигур (до первого пробела)
       const boardPart = fenStr.split(' ')[0];
       const color = firstPos.boardOrientation === 'black' ? 'black' : 'white';
-      // Используем генератор картинок Lichess
       coverImage = `https://lichess1.org/export/fen.gif?fen=${encodeURIComponent(boardPart)}&color=${color}`;
     }
   }
-  // ------------------------------
 
   const id  = state.current?.id || generateId();
   const now = new Date().toISOString();
@@ -1177,10 +917,8 @@ async function saveAnalysis() {
     blocks:   state.blocks,
     date:     state.current?.date || now,
     updated:  now,
-    coverImage: coverImage // <-- Сохраняем обложку в объект
+    coverImage: coverImage
   };
-
-  console.log('JSON размер:', Math.round(JSON.stringify(analysis).length/1024) + 'кб');
 
   try {
     const res = await api('save_analysis', { analysis });
@@ -1195,14 +933,9 @@ async function saveAnalysis() {
       showStatus('Ошибка: ' + (res.error||''), 'err');
     }
   } catch (e) {
-    console.error(e);
-    showStatus('Нет связи с сервером', 'err');
+    console.error(e); showStatus('Нет связи с сервером', 'err');
   }
 }
-
-// ============================================================
-//  DELETE
-// ============================================================
 
 async function deleteAnalysis() {
   if (!state.current) return;
@@ -1220,9 +953,7 @@ async function deleteAnalysisById(id) {
       await loadAnalysesList();
       renderAnalysesList();
       showStatus('Разбор удалён', 'ok');
-      if (document.getElementById('screen-editor').classList.contains('active')) {
-        showScreen('list');
-      }
+      if (document.getElementById('screen-editor')?.classList.contains('active')) showScreen('list');
     } else {
       showStatus('Ошибка удаления', 'err');
     }
@@ -1249,8 +980,11 @@ async function loadMeta() {
     set('meta-subtitle', data.subtitle);
     set('meta-name',     data.name);
     set('meta-about',    data.about);
-    state.pricingPlans = data.pricingPlans || [];
+
+    // Загружаем тарифы
+    state.pricingPlans = data.pricingPlans ||[];
     renderPricingEditor(state.pricingPlans);
+
   } catch {}
 }
 
@@ -1265,41 +999,46 @@ async function saveMeta() {
   try {
     const res = await api('save_meta', { data: payload });
     if (res.ok) showStatus('✓ Настройки сохранены', 'ok');
-    else        showStatus('Ошибка', 'err');
+    else showStatus('Ошибка', 'err');
   } catch { showStatus('Нет связи', 'err'); }
 }
 
 // ============================================================
-//  PRICING PLANS EDITOR
+//  PRICING PLANS EDITOR (ЗАМЕНА EXCEL)
 // ============================================================
 
 function renderPricingEditor(plans = []) {
-  const listEl = document.getElementById('pricing-editor-list');
-  if (!listEl) return;
+    const listEl = document.getElementById('pricing-editor-list');
+    if (!listEl) return;
 
-  listEl.innerHTML = plans.map(plan => `
+    if (!plans || plans.length === 0) {
+        listEl.innerHTML = '<p style="color:var(--text-muted); font-size:0.8rem;">Нет ни одного тарифа. Добавь первый!</p>';
+        return;
+    }
+
+    listEl.innerHTML = plans.map(plan => `
     <div class="block" data-plan-id="${plan.id}">
       <div class="block__header" style="background:var(--bg-alt);">
         <span class="block__drag">⠿</span>
-        <span class="block__type" style="color:var(--text-sec);">${es(plan.name) || 'Новый тариф'}</span>
+        <span class="block__type" style="color:var(--text-sec);">${esc(plan.name) || 'Новый тариф'}</span>
         <button class="block__del" onclick="removePricingPlan('${plan.id}')">✕</button>
       </div>
       <div class="block__body" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
         <div class="field">
           <label>Название</label>
-          <input type="text" class="plan-name" value="${es(plan.name || '')}">
+          <input type="text" class="plan-name" value="${esc(plan.name || '')}">
         </div>
         <div class="field">
           <label>Цена</label>
-          <input type="text" class="plan-price" value="${es(plan.price || '')}">
+          <input type="text" class="plan-price" value="${esc(plan.price || '')}">
         </div>
         <div class="field" style="grid-column:1/-1;">
           <label>Краткое описание</label>
-          <input type="text" class="plan-desc" value="${es(plan.desc || '')}">
+          <input type="text" class="plan-desc" value="${esc(plan.desc || '')}">
         </div>
         <div class="field" style="grid-column:1/-1;">
           <label>Преимущества (каждое с новой строки)</label>
-          <textarea class="plan-features" rows="5" style="min-height:100px;">${es(plan.features ? plan.features.join('\\n') : '')}</textarea>
+          <textarea class="plan-features" rows="5" style="min-height:100px;">${esc(plan.features ? plan.features.join('\n') : '')}</textarea>
         </div>
         <div class="field">
           <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
@@ -1312,58 +1051,62 @@ function renderPricingEditor(plans = []) {
   `).join('');
 }
 
+// Новая функция: собирает данные с полей ДО того, как мы перерисуем интерфейс
+function syncPricingState() {
+    const planElements = document.querySelectorAll('#pricing-editor-list .block');
+    state.pricingPlans = Array.from(planElements).map(el => {
+        const featuresText = el.querySelector('.plan-features').value || '';
+        return {
+            id: el.dataset.planId,
+            name: el.querySelector('.plan-name').value.trim(),
+            price: el.querySelector('.plan-price').value.trim(),
+            desc: el.querySelector('.plan-desc').value.trim(),
+            features: featuresText.split('\n').map(s => s.trim()).filter(Boolean),
+            highlighted: el.querySelector('.plan-highlighted').checked,
+        };
+    });
+}
+
 function addPricingPlan() {
-  const newPlan = {
-    id: `plan_${Date.now()}`,
-    name: 'Новый тариф',
-    price: '0 ₽',
-    desc: '',
-    features: [],
-    highlighted: false,
-  };
-  state.pricingPlans = [...(state.pricingPlans || []), newPlan];
-  renderPricingEditor(state.pricingPlans);
+    syncPricingState(); // Сначала сохраняем то, что уже введено!
+    const newPlan = {
+        id: `plan_${Date.now()}`,
+        name: 'Новый тариф',
+        price: '0 ₽',
+        desc: 'Описание тарифа',
+        features: ['Одно преимущество', 'Второе преимущество'],
+        highlighted: false,
+    };
+    state.pricingPlans = [...(state.pricingPlans || []), newPlan];
+    renderPricingEditor(state.pricingPlans);
 }
 
 function removePricingPlan(id) {
-  if (!confirm('Удалить этот тариф?')) return;
-  state.pricingPlans = state.pricingPlans.filter(p => p.id !== id);
-  renderPricingEditor(state.pricingPlans);
+    if (!confirm('Удалить этот тариф?')) return;
+    syncPricingState(); // Сохраняем перед удалением на случай, если юзер передумает
+    state.pricingPlans = state.pricingPlans.filter(p => p.id !== id);
+    renderPricingEditor(state.pricingPlans);
 }
 
 async function savePricing() {
-  const planElements = document.querySelectorAll('#pricing-editor-list .block');
-  const newPlans = Array.from(planElements).map(el => {
-    const featuresText = el.querySelector('.plan-features').value || '';
-    return {
-      id: el.dataset.planId,
-      name: el.querySelector('.plan-name').value.trim(),
-      price: el.querySelector('.plan-price').value.trim(),
-      desc: el.querySelector('.plan-desc').value.trim(),
-      features: featuresText.split('\\n').map(s => s.trim()).filter(Boolean),
-      highlighted: el.querySelector('.plan-highlighted').checked,
-    };
-  });
-
-  try {
-    const res = await api('save_meta', { data: { pricingPlans: newPlans, excelTable: '' } }); // Также очищаем старую таблицу
-    if (res.ok) {
-      state.pricingPlans = newPlans;
-      showStatus('✓ Тарифы сохранены', 'ok');
-    } else {
-      showStatus('Ошибка сохранения тарифов', 'err');
+    syncPricingState(); // Собираем актуальные данные с полей
+    try {
+        const res = await api('save_meta', { data: { pricingPlans: state.pricingPlans, excelTable: '' } }); // Также очищаем старую таблицу
+        if (res.ok) {
+            showStatus('✓ Тарифы сохранены', 'ok');
+        } else {
+            showStatus('Ошибка сохранения тарифов', 'err');
+        }
+    } catch {
+        showStatus('Нет связи с сервером', 'err');
     }
-  } catch {
-    showStatus('Нет связи с сервером', 'err');
-  }
 }
-
 // ============================================================
-//  API
+//  API & HELPERS
 // ============================================================
 
 async function api(action, payload = {}) {
-  const res = await fetch(CFG.apiUrl, { // Используем новый apiUrl
+  const res = await fetch(CFG.apiUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, token: state.token, ...payload }),
@@ -1372,14 +1115,11 @@ async function api(action, payload = {}) {
   return res.json();
 }
 
-// ============================================================
-//  HELPERS
-// ============================================================
-
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 }
 
+// Защита от XSS. Обязательно используем esc()
 function esc(str) {
   return String(str??'')
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
@@ -1389,15 +1129,14 @@ function esc(str) {
 function formatDate(str) {
   if (!str) return '';
   try {
-    return new Date(str).toLocaleDateString('ru-RU',{
-      day:'numeric', month:'long', year:'numeric'
-    });
+    return new Date(str).toLocaleDateString('ru-RU',{ day:'numeric', month:'long', year:'numeric' });
   } catch { return str; }
 }
 
 let _statusTimer;
 function showStatus(msg, type = 'ok') {
   const bar = document.getElementById('status-bar');
+  if (!bar) return;
   bar.textContent = msg;
   bar.className   = `status-bar show ${type}`;
   clearTimeout(_statusTimer);
