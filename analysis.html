@@ -198,12 +198,13 @@
   //  LOAD
   // ============================================================
 
-  async function loadAnalysis() {
+async function loadAnalysis() {
     const id = new URLSearchParams(window.location.search).get('id');
     if (!id) { showError(); return; }
 
     try {
-      const res = await fetch(`./data/analyses/${encodeURIComponent(id)}.json?t=` + Date.now());
+      // Вот эту строку меняем
+      const res = await fetch(`/api/backend?action=get_analysis&id=${encodeURIComponent(id)}`);
       if (!res.ok) throw new Error();
       renderAnalysis(await res.json());
     } catch {
