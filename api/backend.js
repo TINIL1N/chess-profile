@@ -1,5 +1,5 @@
 import { kv } from '@vercel/kv';
-
+export const runtime = 'nodejs';
 export default async function handler(req, res) {
   // Разрешаем запросы с любого домена (CORS)
   res.setHeader('Access-Control-Allow-Origin', '*');
