@@ -697,4 +697,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 6. Анимации
   setTimeout(initAnimations, 150);
-});
+});}
