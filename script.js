@@ -223,33 +223,32 @@ async function loadAndRenderAnalyses() {
         const recent = analyses.slice(0, 3);
 
         el.innerHTML = recent.map(a => `
-          <article class="card" style="cursor:pointer"
-            onclick="window.location.href='./analysis?id=${escHtml(a.id)}'">
-            <div class="card__img">
-              ${a.coverImage
-                ? `<img src="${escHtml(a.coverImage)}" alt="${escHtml(a.title)}" loading="lazy">`
-                : `<span class="card__placeholder">♟</span>`
-              }
-              <div class="card__overlay">
-                <span>Смотреть разбор →</span>
-              </div>
-            </div>
-            <div class="card__body">
-              <div class="card__tags">
-                ${(a.tags || []).map(t =>
-                  `<span class="badge badge--sm">${escHtml(t)}</span>`
-                ).join('')}
-              </div>
-              <h3 class="card__title">${escHtml(a.title)}</h3>
-              <p class="card__text">${escHtml(a.excerpt || '')}</p>
-              <div class="card__footer">
-                <span class="card__date">${formatDate(a.date)}</span>
-                <span class="card__link accent">Читать →</span>
-              </div>
-            </div>
-          </article>
-        `).join('');
-
+  <article class="card" style="cursor:pointer"
+    onclick="window.location.href='./analysis?id=${escHtml(a.id)}'">
+    <div class="card__img">
+      ${a.coverImage
+        ? `<img src="${escHtml(a.coverImage)}" alt="${escHtml(a.title)}" loading="lazy" style="image-rendering: pixelated;">` // Используем обложку, если она есть
+        : `<span class="card__placeholder">♟</span>` // Иначе показываем пешку
+      }
+      <div class="card__overlay">
+        <span>Смотреть разбор →</span>
+      </div>
+    </div>
+    <div class="card__body">
+      <div class="card__tags">
+        ${(a.tags || []).map(t =>
+          `<span class="badge badge--sm">${escHtml(t)}</span>`
+        ).join('')}
+      </div>
+      <h3 class="card__title">${escHtml(a.title)}</h3>
+      <p class="card__text">${escHtml(a.excerpt || '')}</p>
+      <div class="card__footer">
+        <span class="card__date">${formatDate(a.date)}</span>
+        <span class="card__link accent">Читать →</span>
+      </div>
+    </div>
+  </article>
+`).join('');
         setTimeout(initAnimations, 100);
         return;
       }
