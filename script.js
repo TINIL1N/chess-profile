@@ -316,34 +316,42 @@ function renderBenefits() {
 //  РЕНДЕР — ПРАЙС
 // ============================================================
 
-function renderPricing() {
+// РЕНДЕР — ПРАЙС (теперь из админки)
+function renderPricing(plans = []) {
   const el = document.getElementById('pricing-grid');
   if (!el) return;
 
-  el.innerHTML = DATA.pricing.map(p => `
+  if (!plans || plans.length === 0) {
+    el.innerHTML = '<p style="color:var(--text-sec); text-align:center;">Тарифы скоро появятся...</p>';
+    return;
+  }
+
+  el.innerHTML = plans.map(p => `
     <div class="price-card ${p.highlighted ? 'price-card--highlight' : ''}">
       ${p.highlighted
         ? '<div class="price-card__badge">Популярное</div>'
         : ''
       }
-      <div class="price-card__name">${p.name}</div>
-      <div class="price-card__price">${p.price}</div>
-      <div class="price-card__desc">${p.desc}</div>
+      <div class="price-card__name">${es(p.name)}</div>
+      <div class="price-card__price">${es(p.price)}</div>
+      <div class="price-card__desc">${es(p.desc)}</div>
       <ul class="price-card__features">
-        ${p.features.map(f => `
+        ${(p.features || []).map(f => `
           <li>
             <i data-lucide="check"></i>
-            ${f}
+            ${es(f)}
           </li>
         `).join('')}
       </ul>
       <a href="#order" class="btn ${p.highlighted ? '' : 'btn--outline'} btn--full">
-        ${p.cta}
+        Выбрать
       </a>
     </div>
   `).join('');
+  // Эта функция es() для безопасности, убедись, что она у тебя есть
+  // function es(str) { return String(str ?? '').replace(/</g, '&lt;'); }
 }
-
+function es(str) { return String(str ?? '').replace(/</g, '&lt;'); 
 // ============================================================
 //  РЕНДЕР — О СЕБЕ
 // ============================================================
@@ -392,7 +400,6 @@ function renderFooter() {
 
 async function loadCMSData() {
   try {
-    // Меняем источник данных на наш API
     const res = await fetch('/api/backend?action=get_meta');
     if (!res.ok) return;
     const cms = await res.json();
@@ -436,13 +443,12 @@ async function loadCMSData() {
       }
     }
 
-    // ── Excel таблица цен ──
-    if (cms.excelTable) {
+    if (cms.pricingPlans && cms.pricingPlans.length > 0) {
+      // Если есть тарифы из админки, рисуем их
+      renderPricing(cms.pricingPlans);
+      // И скрываем старую excel-таблицу
       const tableEl = document.getElementById('excel-table-block');
-      if (tableEl) {
-        tableEl.innerHTML = cms.excelTable;
-        tableEl.classList.add('has-content');
-      }
+      if (tableEl) tableEl.style.display = 'none';
     }
 
   } catch {
