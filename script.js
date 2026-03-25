@@ -517,12 +517,11 @@ function initForm() {
     `;
 
     try {
-      const res = await fetch('./send.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
+      const res = await fetch('/api/send-form', { // <-- МЕНЯЕМ АДРЕС ЗДЕСЬ
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(data),
+});
       let result;
       try {
         result = await res.json();
