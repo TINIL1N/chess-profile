@@ -44,14 +44,15 @@ export default async function handler(req, res) {
     const ADMIN_PASS = process.env.ADMIN_PASSWORD || 'chess2024'; // Пароль можно вынести в переменные окружения Vercel
 
     // Авторизация
-    if (action === 'auth') {
-      if (body.password === ADMIN_PASS) {
-        const token = Buffer.from(`${Math.random()}`).toString('base64');
-        await kv.set('session_token', token, { ex: 86400 }); // Токен живет 24 часа
-        return res.status(200).json({ ok: true, token });
-      }
-      return res.status(401).json({ ok: false, error: 'wrong_password' });
-    }
+if (action === 'auth') {
+  if (body.password === ADMIN_PASS) {
+    // Используем современный и надежный способ генерации токена
+    const token = crypto.randomUUID(); 
+    await kv.set('session_token', token, { ex: 86400 }); // Токен живет 24 часа
+    return res.status(200).json({ ok: true, token });
+  }
+  return res.status(401).json({ ok: false, error: 'wrong_password' });
+}
 
     // --- Все действия ниже требуют токен ---
     const sentToken = body.token;
