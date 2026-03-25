@@ -70,32 +70,35 @@ if (action === 'auth') {
     }
 
     // Сохранение разбора
-    if (action === 'save_analysis') {
-      const analysis = body.analysis;
-      if (!analysis || !analysis.id) {
-        return res.status(400).json({ ok: false, error: 'invalid_data' });
-      }
-      // 1. Сохраняем сам разбор
-      await kv.set(`analysis:${analysis.id}`, analysis);
+if (action === 'save_analysis') {
+  const analysis = body.analysis;
+  if (!analysis || !analysis.id) {
+    return res.status(400).json({ ok: false, error: 'invalid_data' });
+  }
+  // 1. Сохраняем сам разбор
+  await kv.set(`analysis:${analysis.id}`, analysis);
 
-      // 2. Обновляем общий список (индекс)
-      let index = await kv.get('analyses_index') || [];
-      index = index.filter(item => item.id !== analysis.id); // Удаляем старую версию, если была
-      index.push({
-        id: analysis.id,
-        title: analysis.title,
-        excerpt: analysis.excerpt || '',
-        tags: analysis.tags || [],
-        date: analysis.date,
-        updated: analysis.updated,
-        blocks: analysis.blocks?.length || 0,
-      });
-      // Сортируем, чтобы самые свежие были вверху
-      index.sort((a, b) => new Date(b.date) - new Date(a.date));
-      await kv.set('analyses_index', index);
+  // 2. Обновляем общий список (индекс)
+  let index = await kv.get('analyses_index') || [];
+  index = index.filter(item => item.id !== analysis.id); // Удаляем старую версию, если была
+  
+  index.push({
+    id: analysis.id,
+    title: analysis.title,
+    excerpt: analysis.excerpt || '',
+    tags: analysis.tags || [],
+    date: analysis.date,
+    updated: analysis.updated,
+    blocks: analysis.blocks?.length || 0,
+    coverImage: analysis.coverImage, // <-- ВОТ ЭТА СТРОЧКА!
+  });
+  
+  // Сортируем, чтобы самые свежие были вверху
+  index.sort((a, b) => new Date(b.date) - new Date(a.date));
+  await kv.set('analyses_index', index);
 
-      return res.status(200).json({ ok: true, id: analysis.id });
-    }
+  return res.status(200).json({ ok: true, id: analysis.id });
+}
 
     // Удаление разбора
     if (action === 'delete_analysis') {
