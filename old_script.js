@@ -213,7 +213,7 @@ async function loadAndRenderAnalyses() {
   if (!el) return;
 
   try {
-    const res = await fetch('./data/analyses/index.json?t=' + Date.now());
+    const res = await fetch('/api/backend?action=get_index');
 
     if (res.ok) {
       const analyses = await res.json();
@@ -393,7 +393,8 @@ function renderFooter() {
 
 async function loadCMSData() {
   try {
-    const res = await fetch('./data/content.json?t=' + Date.now());
+    // Меняем источник данных на наш API
+    const res = await fetch('/api/backend?action=get_meta');
     if (!res.ok) return;
     const cms = await res.json();
 
