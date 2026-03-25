@@ -317,29 +317,32 @@ function renderBenefits() {
 // ============================================================
 
 // РЕНДЕР — ПРАЙС (теперь из админки)
-function renderPricing(plans = []) {
+function renderPricing(plans =[]) {
   const el = document.getElementById('pricing-grid');
   if (!el) return;
 
-  if (!plans || plans.length === 0) {
+  // Если из админки пришли пустые тарифы, показываем стандартные из DATA.pricing
+  const dataToRender = (plans && plans.length > 0) ? plans : DATA.pricing;
+
+  if (!dataToRender || dataToRender.length === 0) {
     el.innerHTML = '<p style="color:var(--text-sec); text-align:center;">Тарифы скоро появятся...</p>';
     return;
   }
 
-  el.innerHTML = plans.map(p => `
+  el.innerHTML = dataToRender.map(p => `
     <div class="price-card ${p.highlighted ? 'price-card--highlight' : ''}">
       ${p.highlighted
         ? '<div class="price-card__badge">Популярное</div>'
         : ''
       }
-      <div class="price-card__name">${es(p.name)}</div>
-      <div class="price-card__price">${es(p.price)}</div>
-      <div class="price-card__desc">${es(p.desc)}</div>
+      <div class="price-card__name">${escHtml(p.name)}</div>
+      <div class="price-card__price">${escHtml(p.price)}</div>
+      <div class="price-card__desc">${escHtml(p.desc)}</div>
       <ul class="price-card__features">
-        ${(p.features || []).map(f => `
+        ${(p.features ||[]).map(f => `
           <li>
             <i data-lucide="check"></i>
-            ${es(f)}
+            ${escHtml(f)}
           </li>
         `).join('')}
       </ul>
@@ -348,8 +351,6 @@ function renderPricing(plans = []) {
       </a>
     </div>
   `).join('');
-  // Эта функция es() для безопасности, убедись, что она у тебя есть
-  // function es(str) { return String(str ?? '').replace(/</g, '&lt;'); }
 }
 function es(str) { return String(str ?? '').replace(/</g, '&lt;'); 
 // ============================================================
