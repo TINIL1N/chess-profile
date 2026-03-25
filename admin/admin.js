@@ -1007,16 +1007,9 @@ async function saveMeta() {
 //  PRICING PLANS EDITOR (ЗАМЕНА EXCEL)
 // ============================================================
 
-function renderPricingEditor(plans = []) {
-    const listEl = document.getElementById('pricing-editor-list');
-    if (!listEl) return;
-
-    if (!plans || plans.length === 0) {
-        listEl.innerHTML = '<p style="color:var(--text-muted); font-size:0.8rem;">Нет ни одного тарифа. Добавь первый!</p>';
-        return;
-    }
-
-    listEl.innerHTML = plans.map(plan => `
+// Рендерит HTML одного тарифа
+function renderPlanHtml(plan) {
+    return `
     <div class="block" data-plan-id="${plan.id}">
       <div class="block__header" style="background:var(--bg-alt);">
         <span class="block__drag">⠿</span>
@@ -1048,7 +1041,20 @@ function renderPricingEditor(plans = []) {
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+}
+
+// Полный рендер — только при первой загрузке из сервера
+function renderPricingEditor(plans = []) {
+    const listEl = document.getElementById('pricing-editor-list');
+    if (!listEl) return;
+
+    if (!plans || plans.length === 0) {
+        listEl.innerHTML = '<p style="color:var(--text-muted); font-size:0.8rem;">Нет ни одного тарифа. Добавь первый!</p>';
+        return;
+    }
+
+    listEl.innerHTML = plans.map(plan => renderPlanHtml(plan)).join('');
 }
 
 // Новая функция: собирает данные с полей ДО того, как мы перерисуем интерфейс
@@ -1068,7 +1074,8 @@ function syncPricingState() {
 }
 
 function addPricingPlan() {
-    syncPricingState(); // Сначала сохраняем то, что уже введено!
+    // НЕ делаем полный перерендер — просто добавляем новый блок в конец,
+    // чтобы не затереть уже введённые данные в существующих тарифах
     const newPlan = {
         id: `plan_${Date.now()}`,
         name: 'Новый тариф',
@@ -1077,15 +1084,34 @@ function addPricingPlan() {
         features: ['Одно преимущество', 'Второе преимущество'],
         highlighted: false,
     };
-    state.pricingPlans = [...(state.pricingPlans || []), newPlan];
-    renderPricingEditor(state.pricingPlans);
+    if (!state.pricingPlans) state.pricingPlans = [];
+    state.pricingPlans.push(newPlan);
+
+    const listEl = document.getElementById('pricing-editor-list');
+    if (!listEl) return;
+
+    // Убираем заглушку «нет тарифов», если она есть
+    const empty = listEl.querySelector('p');
+    if (empty) empty.remove();
+
+    // Добавляем только новый блок, не трогая остальные
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = renderPlanHtml(newPlan);
+    listEl.appendChild(wrapper.firstElementChild);
 }
 
 function removePricingPlan(id) {
     if (!confirm('Удалить этот тариф?')) return;
-    syncPricingState(); // Сохраняем перед удалением на случай, если юзер передумает
-    state.pricingPlans = state.pricingPlans.filter(p => p.id !== id);
-    renderPricingEditor(state.pricingPlans);
+    // Просто удаляем DOM-элемент, не затирая остальные тарифы
+    const el = document.querySelector(`#pricing-editor-list [data-plan-id="${id}"]`);
+    if (el) el.remove();
+    state.pricingPlans = (state.pricingPlans || []).filter(p => p.id !== id);
+
+    // Показываем заглушку, если не осталось тарифов
+    const listEl = document.getElementById('pricing-editor-list');
+    if (listEl && !listEl.querySelector('.block')) {
+        listEl.innerHTML = '<p style="color:var(--text-muted); font-size:0.8rem;">Нет ни одного тарифа. Добавь первый!</p>';
+    }
 }
 
 async function savePricing() {
