@@ -677,7 +677,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderHeroStats();
   renderApproach();
   renderBenefits();
-  renderPricing();
+  // renderPricing() теперь вызывается внутри loadCMSData
   renderAbout();
   renderOrderList();
   renderFooter();
